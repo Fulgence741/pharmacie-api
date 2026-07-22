@@ -5,7 +5,7 @@ import (
 	"pharmacie-api/pharmacie/handlers"
 )
 
-func GestionRoutes() {
+func GestionRoutesPharmacie() {
 	http.HandleFunc("POST /pharmacie", handlers.AjouterPharmacie)
 	http.HandleFunc("GET /pharmacie", handlers.ListerPharmacie)
 	http.HandleFunc("GET /pharmacie/{id_pharmacie}", handlers.AfficherPharmacie)

@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"net/http"
 	"pharmacie-api/database"
-	"pharmacie-api/pharmacie/routes"
+	gardeRoutes "pharmacie-api/garde/routes"
+	pharmacieRoutes "pharmacie-api/pharmacie/routes"
+	pharmacieGardeRoutes "pharmacie-api/pharmacie_garde/routes"
 )
 
 func main() {
 
 	database.ConnexionDB()
-	routes.GestionRoutes()
-
+	pharmacieRoutes.GestionRoutesPharmacie()
+	gardeRoutes.GestionRoutesGarde()
+	pharmacieGardeRoutes.GestionRoutesPharmacieGarde()
 	err := http.ListenAndServe(":8080", nil)
 
 	if err != nil {
