@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"pharmacie-api/garde/models"
-	"pharmacie-api/garde/repositories"
+	"pharmacie-api/garde/services"
 	"strconv"
 )
 
@@ -18,7 +18,7 @@ func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = repositories.AjouterGardeDB(newGarde)
+	err = services.AjouterGardeService(newGarde)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -34,7 +34,7 @@ func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 }
 
 func ListerGardes(response http.ResponseWriter, request *http.Request) {
-	liste, err := repositories.ListerGardesDB()
+	liste, err := services.ListerGardeService()
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -58,7 +58,7 @@ func AfficherGarde(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	obtenirGarde, err := repositories.AfficherGarde(id_garde)
+	obtenirGarde, err := services.ObtenirGardeService(id_garde)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(response, "Garde non trouvée", http.StatusNotFound)
@@ -92,7 +92,7 @@ func ModifierGarde(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = repositories.ModifierGarde(id_garde, putGarde)
+	err = services.ModifierGardeService(id_garde, putGarde)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -116,7 +116,7 @@ func SupprimerGarde(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = repositories.SupprimerGarde(id_garde)
+	err = services.SupprimerGardeService(id_garde)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

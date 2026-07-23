@@ -47,7 +47,7 @@ func ListerGardesDB() ([]models.Garde, error) {
 
 }
 
-func AfficherGarde(id_garde int) (models.Garde, error) {
+func AfficherGardeDB(id_garde int) (models.Garde, error) {
 	var obtenirGarde models.Garde
 	requete := `
 						SELECT id_garde, nom_garde, date_garde, heure_debut, heure_fin FROM gardes WHERE id_garde = $1
@@ -62,7 +62,7 @@ func AfficherGarde(id_garde int) (models.Garde, error) {
 	return obtenirGarde, err
 }
 
-func ModifierGarde(id_garde int, putGarde models.Garde) error {
+func ModifierGardeDB(id_garde int, putGarde models.Garde) error {
 	requete := `
 					UPDATE gardes 
 					SET nom_garde = $1,
@@ -82,7 +82,7 @@ func ModifierGarde(id_garde int, putGarde models.Garde) error {
 
 }
 
-func SupprimerGarde(id_garde int) error {
+func SupprimerGardeDB(id_garde int) error {
 	requete := `
 						DELETE FROM gardes WHERE id_garde= $1 
 	`

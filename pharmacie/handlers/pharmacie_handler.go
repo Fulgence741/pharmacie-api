@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"pharmacie-api/pharmacie/models"
-	"pharmacie-api/pharmacie/repositories"
+	"pharmacie-api/pharmacie/services"
 	"strconv"
 )
 
@@ -16,7 +16,7 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = repositories.AjouterPharmacieDB(newPharmacie)
+	err = services.AjouterPharmacieServices(newPharmacie)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -32,7 +32,7 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 }
 func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 
-	liste, err := repositories.ListerPharmacieDB()
+	liste, err := services.ListerPharmacieServices()
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -56,7 +56,7 @@ func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	afficherPharmacie, err := repositories.AfficherPharmacieDB(id_pharmacie)
+	afficherPharmacie, err := services.AfficherPharmacieServices(id_pharmacie)
 
 	if err != nil {
 
@@ -95,7 +95,7 @@ func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = repositories.ModifierPharmacieDB(id_pharmacie, putPharmacie)
+	err = services.ModifierPharmacieService(id_pharmacie, putPharmacie)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -118,7 +118,7 @@ func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = repositories.SupprimerPharmacieDB(id_pharmacie)
+	err = services.SupprimerPharmacieServices(id_pharmacie)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
