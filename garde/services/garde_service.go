@@ -14,6 +14,7 @@ func ListerGardeService() ([]models.Garde, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return garde, nil
 }
 
