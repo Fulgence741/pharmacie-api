@@ -38,6 +38,10 @@ func ListerPharmacieServices() ([]models.Pharmacie, error) {
 }
 
 func AfficherPharmacieServices(id_pharmacie int) (models.Pharmacie, error) {
+
+	if id_pharmacie <= 0 {
+		return models.Pharmacie{}, errors.New("Identifiant invalide")
+	}
 	pharmacie, err := repositories.AfficherPharmacieDB(id_pharmacie)
 	if err != nil {
 		return models.Pharmacie{}, err
@@ -47,6 +51,10 @@ func AfficherPharmacieServices(id_pharmacie int) (models.Pharmacie, error) {
 }
 
 func ModifierPharmacieService(id_pharmacie int, pharmacie models.Pharmacie) error {
+
+	if id_pharmacie <= 0 {
+		return errors.New("Identifiant invalide")
+	}
 	err := repositories.ModifierPharmacieDB(id_pharmacie, pharmacie)
 	if err != nil {
 		return err
@@ -56,6 +64,9 @@ func ModifierPharmacieService(id_pharmacie int, pharmacie models.Pharmacie) erro
 }
 
 func SupprimerPharmacieServices(id_pharmacie int) error {
+	if id_pharmacie <= 0 {
+		return errors.New("Identifiant invalide")
+	}
 	err := repositories.SupprimerPharmacieDB(id_pharmacie)
 	if err != nil {
 		return err

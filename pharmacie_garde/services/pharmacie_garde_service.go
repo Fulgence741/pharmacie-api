@@ -1,11 +1,17 @@
 package services
 
 import (
+	"errors"
 	"pharmacie-api/pharmacie_garde/models"
 	"pharmacie-api/pharmacie_garde/repositories"
 )
 
 func AjouterService(pharmacieGarde models.PharmacieGarde) error {
+
+	if pharmacieGarde.PharmacieID <= 0 || pharmacieGarde.GardeID <= 0 {
+		return errors.New("Identifiant invalide")
+	}
+
 	return repositories.AjouterDB(pharmacieGarde)
 }
 
@@ -18,6 +24,10 @@ func ListerService() ([]models.PharmacieGardeA, error) {
 }
 
 func SupprimerService(id int) error {
+
+	if id <= 0 {
+		return errors.New("Id invalide")
+	}
 	err := repositories.SupprimerDb(id)
 	if err != nil {
 		return err

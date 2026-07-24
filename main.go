@@ -7,6 +7,7 @@ import (
 	gardeRoutes "pharmacie-api/garde/routes"
 	pharmacieRoutes "pharmacie-api/pharmacie/routes"
 	pharmacieGardeRoutes "pharmacie-api/pharmacie_garde/routes"
+	UserRoutes "pharmacie-api/users/routes"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 	pharmacieRoutes.GestionRoutesPharmacie()
 	gardeRoutes.GestionRoutesGarde()
 	pharmacieGardeRoutes.GestionRoutesPharmacieGarde()
+	UserRoutes.GestionRoutesUsers()
 	err := http.ListenAndServe(":8080", nil)
 
 	if err != nil {
