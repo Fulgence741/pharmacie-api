@@ -12,11 +12,14 @@ import (
 
 func main() {
 
+	// Connexion à la base de donnée (toujours en premier)
 	database.ConnexionDB()
+	// Charger toutes les routes
 	pharmacieRoutes.GestionRoutesPharmacie()
 	gardeRoutes.GestionRoutesGarde()
 	pharmacieGardeRoutes.GestionRoutesPharmacieGarde()
 	UserRoutes.GestionRoutesUsers()
+	// Demarrage du serveur local (toujours en dernier)
 	err := http.ListenAndServe(":8080", nil)
 
 	if err != nil {

@@ -48,6 +48,7 @@ func ListerUserService() ([]models.User, error) {
 
 func Connexion(email string, password string) (models.User, error) {
 	user, err := repositories.CnnexionUserDB(email)
+
 	if err != nil {
 		return models.User{}, errors.New("Email incorrect")
 	}

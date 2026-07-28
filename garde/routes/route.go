@@ -3,14 +3,30 @@ package routes
 import (
 	"net/http"
 	"pharmacie-api/garde/handlers"
+	"pharmacie-api/middleware"
 )
 
 func GestionRoutesGarde() {
 
-	http.HandleFunc("POST /garde", handlers.AjouterGarde)
-	http.HandleFunc("GET /garde", handlers.ListerGardes)
-	http.HandleFunc("GET /garde/{id_garde}", handlers.AfficherGarde)
-	http.HandleFunc("PUT /garde/{id_garde}", handlers.ModifierGarde)
-	http.HandleFunc("DELETE /garde/{id_garde}", handlers.SupprimerGarde)
+	http.Handle(
+		"POST /garde",
+		middleware.Auth(http.HandlerFunc(handlers.AjouterGarde)), // Protection des routes par le middleware
+	)
+	http.Handle(
+		"GET /garde",
+		middleware.Auth(http.HandlerFunc(handlers.ListerGardes)),
+	)
+	http.Handle(
+		"GET /garde/{id_garde}",
+		middleware.Auth(http.HandlerFunc(handlers.AfficherGarde)),
+	)
+	http.Handle(
+		"PUT /garde/{id_garde}",
+		middleware.Auth(http.HandlerFunc(handlers.ModifierGarde)),
+	)
+	http.Handle(
+		"DELETE /garde/{id_garde}",
+		middleware.Auth(http.HandlerFunc(handlers.SupprimerGarde)),
+	)
 
 }
