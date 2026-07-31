@@ -62,3 +62,17 @@ func Connexion(email string, password string) (models.User, error) {
 	}
 	return user, nil
 }
+
+func SupprimerUserService(id int) error {
+	if id <= 0 {
+		return errors.New("Id invalide")
+	}
+
+	err := repositories.SupprimerUserDB(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}

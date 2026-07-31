@@ -7,19 +7,37 @@ import (
 )
 
 func GestionRoutesPharmacieGarde() {
+
+	// Routes protégées par le middleware
+	//=========================================================
 	http.Handle(
 		"POST /pharmacie-garde",
-		middleware.Auth(http.HandlerFunc(handlers.Ajouter)),
+		middleware.Logger(
+			middleware.Auth(
+				http.HandlerFunc(
+					handlers.Ajouter)),
+		),
 	)
 
 	http.Handle(
 		"GET /pharmacie-garde",
-		middleware.Auth(http.HandlerFunc(handlers.Lister)),
+		middleware.Logger(
+			middleware.Auth(
+				http.HandlerFunc(
+					handlers.Lister)),
+		),
 	)
 
 	http.Handle(
 		"DELETE /pharmacie-garde/{id}",
-		middleware.Auth(http.HandlerFunc(handlers.Supprimer)),
+		middleware.Logger(
+			middleware.Auth(
+				http.HandlerFunc(
+					handlers.Supprimer)),
+		),
 	)
+	//=========================================================
+
+	// Routes publiques
 
 }

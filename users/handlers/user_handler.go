@@ -6,6 +6,7 @@ import (
 	"pharmacie-api/auth"
 	"pharmacie-api/users/models"
 	"pharmacie-api/users/services"
+	"strconv"
 )
 
 func AjouterUser(response http.ResponseWriter, request *http.Request) {
@@ -75,6 +76,30 @@ func ConnexionUser(response http.ResponseWriter, request *http.Request) {
 	})
 	if err != nil {
 		http.Error(response, "Erreur du JSON", http.StatusInternalServerError)
+		return
+	}
+
+}
+
+func SupprimerUser(response http.ResponseWriter, request *http.Request) {
+	chemin := request.PathValue("id")
+	id, err := strconv.Atoi(chemin)
+	if err != nil {
+		http.Error(response, "Id invalide", http.StatusBadRequest)
+		return
+	}
+
+	err = services.SupprimerUserService(id)
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response.Header().Set("Content-type", "application/json")
+	response.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(response).Encode("Utilisateur supprimé avec succès")
+	if err != nil {
+		http.Error(response, "Erreur du json", http.StatusInternalServerError)
 		return
 	}
 

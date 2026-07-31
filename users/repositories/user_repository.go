@@ -74,3 +74,12 @@ func CnnexionUserDB(email string) (models.User, error) {
 	return user, nil
 
 }
+
+func SupprimerUserDB(id int) error {
+
+	requete := `
+				DELETE FROM users WHERE id = $1
+	`
+	_, err := database.DB.Exec(requete, id)
+	return err
+}

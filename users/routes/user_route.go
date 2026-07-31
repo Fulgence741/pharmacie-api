@@ -8,13 +8,52 @@ import (
 
 func GestionRoutesUsers() {
 
-	http.Handle(
+	// Routes protégées par le middleware
+	//============================================================
+	/*http.Handle(
 		"POST /user",
-		middleware.Auth(http.HandlerFunc(handlers.AjouterUser)),
-	)
+		middleware.Auth(
+			http.HandlerFunc(
+				handlers.AjouterUser)),
+	) */
+
 	http.Handle(
 		"GET /user",
-		middleware.Auth(http.HandlerFunc(handlers.ListerUser)),
+		middleware.Logger(
+
+			middleware.Auth(
+				http.HandlerFunc(
+					handlers.ListerUser)),
+		),
 	)
-	http.HandleFunc("POST /login", handlers.ConnexionUser)
+
+	http.Handle(
+
+		"DELETE /user/{id}",
+		middleware.Logger(
+			middleware.Auth(
+				http.HandlerFunc(
+					handlers.SupprimerUser)),
+		),
+	)
+	//============================================================
+
+	// Routes publiques ========================================
+
+	http.Handle(
+		"POST /user",
+		middleware.Logger(
+			http.HandlerFunc(
+				handlers.AjouterUser),
+		),
+	)
+
+	http.Handle(
+		"POST /login",
+		middleware.Logger(
+			http.HandlerFunc(
+				handlers.ConnexionUser),
+		),
+	)
+
 }
