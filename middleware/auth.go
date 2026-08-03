@@ -5,6 +5,8 @@ import (
 	"pharmacie-api/auth"
 	"strings"
 
+	"context"
+
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -32,6 +34,25 @@ func Auth(next http.Handler) http.Handler {
 			http.Error(response, "Token non valide", http.StatusUnauthorized)
 			return
 		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			http.Error(response, "Claims non valides", http.StatusUnauthorized)
+			return
+		}
+
+		role, ok := claims["role"].(string)
+		if !ok {
+			http.Error(response, "Role absent", http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(
+			request.Context(),
+			"role",
+			role,
+		)
+		request = request.WithContext(ctx)
 		next.ServeHTTP(response, request)
 
 		// code exécuté après le handlers ================

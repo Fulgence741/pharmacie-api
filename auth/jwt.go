@@ -1,13 +1,20 @@
 package auth
 
 import (
+	"os"
 	"pharmacie-api/users/models"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var SecretKey = []byte("ma-cle-secret")
+func SecretKey() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		panic("JWT_SECRET manquant")
+	}
+	return []byte(secret)
+}
 
 func GenererJWT(user models.User) (string, error) {
 	token := jwt.NewWithClaims(
@@ -20,7 +27,7 @@ func GenererJWT(user models.User) (string, error) {
 		},
 	)
 
-	tokenString, err := token.SignedString(SecretKey)
+	tokenString, err := token.SignedString(SecretKey())
 
 	if err != nil {
 		return "", err

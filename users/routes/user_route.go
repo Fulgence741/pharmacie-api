@@ -8,14 +8,16 @@ import (
 
 func GestionRoutesUsers() {
 
-	// Routes protégées par le middleware
+	// Routes protégées par le middleware d'authentification
 	//============================================================
-	/*http.Handle(
+	http.Handle(
 		"POST /user",
-		middleware.Auth(
-			http.HandlerFunc(
-				handlers.AjouterUser)),
-	) */
+		middleware.Logger(
+			middleware.Auth(
+				http.HandlerFunc(
+					handlers.AjouterUser)),
+		),
+	)
 
 	http.Handle(
 		"GET /user",
@@ -39,14 +41,6 @@ func GestionRoutesUsers() {
 	//============================================================
 
 	// Routes publiques ========================================
-
-	http.Handle(
-		"POST /user",
-		middleware.Logger(
-			http.HandlerFunc(
-				handlers.AjouterUser),
-		),
-	)
 
 	http.Handle(
 		"POST /login",

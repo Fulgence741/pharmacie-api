@@ -8,7 +8,7 @@ import (
 
 func GestionRoutesPharmacie() {
 
-	// Routes protégées par le middleware
+	// Routes protégées par le middleware d'authentification
 	//================================================================
 	http.Handle(
 		"POST /pharmacie",
@@ -48,8 +48,10 @@ func GestionRoutesPharmacie() {
 		"DELETE /pharmacie/{id_pharmacie}",
 		middleware.Logger(
 			middleware.Auth(
-				http.HandlerFunc(
-					handlers.SupprimerPharmacie)),
+				middleware.RequireRole("admin")(
+					http.HandlerFunc(
+						handlers.SupprimerPharmacie)),
+			),
 		),
 	)
 	//===============================================================

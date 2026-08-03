@@ -8,7 +8,7 @@ import (
 
 func GestionRoutesPharmacieGarde() {
 
-	// Routes protégées par le middleware
+	// Routes protégées par le middleware d'authentification
 	//=========================================================
 	http.Handle(
 		"POST /pharmacie-garde",

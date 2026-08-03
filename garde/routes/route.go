@@ -8,7 +8,7 @@ import (
 
 func GestionRoutesGarde() {
 
-	// Routes Protgées par middleware
+	// Routes Protgées par middleware d'authentification
 	//=============================================================
 	http.Handle(
 		"POST /garde",

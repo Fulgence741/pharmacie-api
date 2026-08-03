@@ -10,6 +10,7 @@ import (
 )
 
 func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
+
 	var newPharmacie models.Pharmacie
 	err := json.NewDecoder(request.Body).Decode(&newPharmacie)
 	if err != nil {
