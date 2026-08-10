@@ -7,8 +7,14 @@ import (
 
 func AjouterGardeDB(newGarde models.Garde) error {
 	requete := `
-					INSERT INTO gardes (nom_garde, date_garde, heure_debut, heure_fin)
-					VALUES ($1, $2, $3, $4)
+					INSERT INTO gardes (nom_garde,
+					 date_garde,
+					  heure_debut,
+					   heure_fin)
+					VALUES ($1,
+					 		 $2,
+					 		  $3,
+					   		   $4)
 	`
 	_, err := database.DB.Exec(requete,
 		newGarde.Nom_Garde,
@@ -20,7 +26,11 @@ func AjouterGardeDB(newGarde models.Garde) error {
 
 func ListerGardesDB() ([]models.Garde, error) {
 	requete := `
-						SELECT id_garde, nom_garde, date_garde, heure_debut, heure_fin FROM gardes
+						SELECT id_garde,
+						 nom_garde,
+						  date_garde,
+						   heure_debut,
+						    heure_fin FROM gardes
 		`
 	rows, err := database.DB.Query(requete)
 	if err != nil {
@@ -50,7 +60,11 @@ func ListerGardesDB() ([]models.Garde, error) {
 func AfficherGardeDB(id_garde int) (models.Garde, error) {
 	var obtenirGarde models.Garde
 	requete := `
-						SELECT id_garde, nom_garde, date_garde, heure_debut, heure_fin FROM gardes WHERE id_garde = $1
+						SELECT id_garde,
+						 nom_garde,
+						  date_garde,
+						   heure_debut,
+						    heure_fin FROM gardes WHERE id_garde = $1
 		`
 	err := database.DB.QueryRow(requete, id_garde).Scan(
 		&obtenirGarde.ID_GARDE,

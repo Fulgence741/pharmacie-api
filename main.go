@@ -1,6 +1,9 @@
 package main
 
 import (
+	_ "pharmacie-api/docs"
+	"pharmacie-api/swagger"
+
 	"fmt"
 	"net/http"
 	"pharmacie-api/database"
@@ -9,6 +12,12 @@ import (
 	pharmacieGardeRoutes "pharmacie-api/pharmacie_garde/routes"
 	UserRoutes "pharmacie-api/users/routes"
 )
+
+// @title Pharmacie API
+// @version 1.0
+// @description API de gestion des pharmacies, gardes et utilisateurs
+// @host localhost:8080
+// @BasePath /
 
 func main() {
 
@@ -19,6 +28,7 @@ func main() {
 	gardeRoutes.GestionRoutesGarde()
 	pharmacieGardeRoutes.GestionRoutesPharmacieGarde()
 	UserRoutes.GestionRoutesUsers()
+	swagger.SwaggerRoutes()
 	// Demarrage du serveur local (toujours en dernier)
 	err := http.ListenAndServe(":8080", nil)
 

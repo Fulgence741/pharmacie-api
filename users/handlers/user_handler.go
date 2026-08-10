@@ -9,6 +9,12 @@ import (
 	"strconv"
 )
 
+// @Summary Inscription d'un utilisateur
+// @Description permet de s'inscrire en remplissant les champs
+// @Tags User
+// @Succes 201 {string} string "Utilisateur créé"
+// @Faillure 400 {string} string "Données invalides"
+// @Router /user [post]
 func AjouterUser(response http.ResponseWriter, request *http.Request) {
 	var newUser models.User
 	err := json.NewDecoder(request.Body).Decode(&newUser)
@@ -48,6 +54,14 @@ func ListerUser(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// @Summary Connexion utilisateur
+// @Description Permet à un utilisateur de se connecter
+// @Tags Auth
+// @Router /login [post]
+// @Success 200 {string} string "Connexion réussie"
+// @Failure 401 {string} string "Email ou mot de passe incorrect"
+// @Accept json
+// @Produce json
 func ConnexionUser(response http.ResponseWriter, request *http.Request) {
 	var user models.User
 	err := json.NewDecoder(request.Body).Decode(&user)
@@ -103,4 +117,36 @@ func SupprimerUser(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+}
+
+func ModifierRole(response http.ResponseWriter, request *http.Request) {
+	chemin := request.PathValue("id")
+
+	id, err := strconv.Atoi(chemin)
+	if err != nil {
+		http.Error(response, "Id invalide", http.StatusBadRequest)
+		return
+	}
+
+	var donnee struct {
+		Role string `json:"role"`
+	}
+
+	err = json.NewDecoder(request.Body).Decode(&donnee)
+	if err != nil {
+		http.Error(response, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+	err = services.ModifierRoleServices(id, donnee.Role)
+	if err != nil {
+		http.Error(response, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	response.Header().Set("Content-Type", "application/json")
+	response.WriteHeader(http.StatusOK)
+	json.NewEncoder(response).Encode(map[string]string{
+		"message": "Rôle modifié avec succès",
+	})
 }

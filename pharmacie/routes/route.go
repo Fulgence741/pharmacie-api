@@ -10,14 +10,20 @@ func GestionRoutesPharmacie() {
 
 	// Routes protégées par le middleware d'authentification
 	//================================================================
+
+	// Administrateur et pharmacien
 	http.Handle(
 		"POST /pharmacie",
 		middleware.Logger(
 			middleware.Auth(
-				http.HandlerFunc(
-					handlers.AjouterPharmacie)),
+				middleware.RequireRole("admin", "pharmacien")(
+					http.HandlerFunc(
+						handlers.AjouterPharmacie)),
+			),
 		),
 	)
+
+	// Route accessible à tous
 	http.Handle(
 		"GET /pharmacie",
 		middleware.Logger(
@@ -27,6 +33,7 @@ func GestionRoutesPharmacie() {
 		),
 	)
 
+	// Route accessible à tous
 	http.Handle(
 		"GET /pharmacie/{id_pharmacie}",
 		middleware.Logger(
@@ -35,15 +42,20 @@ func GestionRoutesPharmacie() {
 					handlers.AfficherPharmacie)),
 		),
 	)
+
+	// Administrateur et pharmacien
 	http.Handle(
 		"PUT /pharmacie/{id_pharmacie}",
 		middleware.Logger(
 			middleware.Auth(
-				http.HandlerFunc(
-					handlers.ModifierPharmacie)),
+				middleware.RequireRole("admin", "pharmacien")(
+					http.HandlerFunc(
+						handlers.ModifierPharmacie)),
+			),
 		),
 	)
 
+	// Uniquement pour l'administrateur
 	http.Handle(
 		"DELETE /pharmacie/{id_pharmacie}",
 		middleware.Logger(

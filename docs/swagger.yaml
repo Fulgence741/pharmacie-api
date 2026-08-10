@@ -1,0 +1,35 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: API de gestion des pharmacies, gardes et utilisateurs
+  title: Pharmacie API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Permet à un utilisateur de se connecter
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connexion réussie
+          schema:
+            type: string
+        "401":
+          description: Email ou mot de passe incorrect
+          schema:
+            type: string
+      summary: Connexion utilisateur
+      tags:
+      - Auth
+  /user:
+    post:
+      description: permet de s'inscrire en remplissant les champs
+      responses: {}
+      summary: Inscription d'un utilisateur
+      tags:
+      - User
+swagger: "2.0"

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"pharmacie-api/users/models"
 	"pharmacie-api/users/repositories"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,8 +16,14 @@ func AjouterUserService(user models.User) error {
 	if user.Email == "" {
 		return errors.New("Le champ Email est obligatoire")
 	}
+	if !strings.Contains(user.Email, "@") {
+		return errors.New("Email invalide")
+	}
 	if user.Password == "" {
 		return errors.New("Le champ password est obligatoire")
+	}
+	if len(user.Password) < 8 {
+		return errors.New("Le mot de passe doit conteenir au moins 8 caractères")
 	}
 	if user.Fonction == "" {
 		return errors.New("Le champ fonction est obligatoire")
@@ -24,7 +31,6 @@ func AjouterUserService(user models.User) error {
 	if user.Role == "" {
 		return errors.New("Le champ role est obligaatoire")
 	}
-
 	motDePasseHache, err := bcrypt.GenerateFromPassword(
 		[]byte(user.Password),
 		bcrypt.DefaultCost,
@@ -34,6 +40,7 @@ func AjouterUserService(user models.User) error {
 	}
 
 	user.Password = string(motDePasseHache)
+	user.Role = "user"
 	return repositories.AjouterUserDB(user)
 }
 
@@ -75,4 +82,18 @@ func SupprimerUserService(id int) error {
 
 	return nil
 
+}
+
+func ModifierRoleServices(id int, role string) error {
+	if id <= 0 {
+		return errors.New("Utilisateur introuvable")
+	}
+
+	switch role {
+	case "pharmacien", "user":
+	default:
+		return errors.New("Rôle invalide")
+	}
+
+	return repositories.ModifierRoleDB(id, role)
 }

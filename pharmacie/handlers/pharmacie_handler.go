@@ -130,6 +130,7 @@ func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
 	err = json.NewEncoder(response).Encode("Pharmacie supprimé avec succès")
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 

@@ -1,11 +1,10 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"pharmacie-api/auth"
 	"strings"
-
-	"context"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -21,13 +20,18 @@ func Auth(next http.Handler) http.Handler {
 
 		if !strings.HasPrefix(authorization, "Bearer ") {
 			http.Error(response, "Token invalide", http.StatusUnauthorized)
+
 			return
 		}
 
 		tokenString := strings.TrimPrefix(authorization, "Bearer ")
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return auth.SecretKey, nil
+
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, jwt.ErrSignatureInvalid
+			}
+			return auth.SecretKey(), nil
 		})
 
 		if err != nil || !token.Valid {
