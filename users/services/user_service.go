@@ -97,3 +97,17 @@ func ModifierRoleServices(id int, role string) error {
 
 	return repositories.ModifierRoleDB(id, role)
 }
+
+func AfficherUserServices(id int) (models.User, error) {
+
+	if id <= 0 {
+		return models.User{}, errors.New("Identifiant invalide")
+	}
+
+	user, err := repositories.AfficherUserDB(id)
+	if err != nil {
+		return models.User{}, err
+	}
+	return user, nil
+
+}

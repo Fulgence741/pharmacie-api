@@ -58,6 +58,19 @@ func GestionRoutesUsers() {
 			),
 		),
 	)
+
+	// Administrateur uniquement
+	http.Handle(
+		"GET /user/{id}",
+		middleware.Logger(
+
+			middleware.Auth(
+				middleware.RequireRole("admin", "pharmacien")(
+					http.HandlerFunc(
+						handlers.ListerUser)),
+			),
+		),
+	)
 	//============================================================
 
 	// Routes publiques ========================================

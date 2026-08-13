@@ -9,6 +9,12 @@ import (
 	"strconv"
 )
 
+// @Summary ajout d'une garde
+// @Description Permet d'ajouter une garde
+// @Tags Garde
+// @Success 201 {string} string "Garde ajoutée aavec succès"
+// @Failure 400 {string} string ""
+// @Router /garde [post]
 func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 
 	var newGarde models.Garde
@@ -33,6 +39,12 @@ func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 
 }
 
+// @Summary Liste de gardes
+// @Description Permet de renvvoyer la liste toutes les gardes disponibles en base de données
+// @Tags Garde
+// @Success 201 {string} string ""
+// @Failure 400 {string} string ""
+// @Router /garde [get]
 func ListerGardes(response http.ResponseWriter, request *http.Request) {
 	liste, err := services.ListerGardeService()
 	if err != nil {
@@ -49,6 +61,12 @@ func ListerGardes(response http.ResponseWriter, request *http.Request) {
 
 }
 
+// @Summary Affichage de garde
+// @Description Permet de renvoyer une garde spécifique
+// @Tags Garde
+// @Success 201 {string} string ""
+// @Failure 401 {string} string "Id non valide"
+// @Router /garde/{id} [get]
 func AfficherGarde(response http.ResponseWriter, request *http.Request) {
 
 	chemin := request.PathValue("id_garde")
@@ -77,6 +95,12 @@ func AfficherGarde(response http.ResponseWriter, request *http.Request) {
 
 }
 
+// @Summary Modification de garde
+// @Description Permet de de modifier une garde spécifique
+// @Tags Garde
+// @Success 201 {string} string "Garde modifiée avec succès"
+// @Failure 400 {string} string "Id invalides"
+// @Router /garde/{id} [put]
 func ModifierGarde(response http.ResponseWriter, request *http.Request) {
 
 	chemin := request.PathValue("id_garde")
@@ -108,6 +132,12 @@ func ModifierGarde(response http.ResponseWriter, request *http.Request) {
 
 }
 
+// @Summary Supression de garde
+// @Description Permet de supprimer une garde spécifique
+// @Tags Garde
+// @Success 201 {string} string "Garde supprimé avec succès"
+// @Failure 400 {string} string "Id non valide"
+// @Router /garde/{id} [delete]
 func SupprimerGarde(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id_garde")
 	id_garde, err := strconv.Atoi(chemin)

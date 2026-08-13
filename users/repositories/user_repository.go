@@ -107,3 +107,24 @@ func ModifierRoleDB(id int, role string) error {
 
 	return nil
 }
+
+func AfficherUserDB(id int) (models.User, error) {
+	var afficherU models.User
+	requete := `
+				SELECT id,
+				nom,
+				email,
+				fonction, 
+				role FROM users WHERE id = $1
+	`
+
+	err := database.DB.QueryRow(requete, id).Scan(
+		&afficherU.ID_USER,
+		&afficherU.Nom,
+		&afficherU.Email,
+		&afficherU.Fonction,
+		&afficherU.Role,
+	)
+
+	return afficherU, err
+}

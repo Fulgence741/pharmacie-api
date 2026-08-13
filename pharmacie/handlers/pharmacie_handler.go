@@ -9,6 +9,12 @@ import (
 	"strconv"
 )
 
+// @Summary Ajouter une pharmacie
+// @Description Permet d'ajouter une pharmacie
+// @Tags Pharmacie
+// @Success 201 {string} string "Pharmacie ajoutée avec succès"
+// @Failure 400 {string} string ""
+// @Router /pharmacie [post]
 func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	var newPharmacie models.Pharmacie
@@ -31,6 +37,13 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 	}
 
 }
+
+// @Summary Lister pharmacie
+// @Description Permet de renvoyer la liste de toutes pharmacies disponible en base de donnée
+// @Tags Pharmacie
+// @Success 201 {string} string ""
+// @Failure 400 {string} string ""
+// @Router /pharmacie [get]
 func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	liste, err := services.ListerPharmacieServices()
@@ -47,6 +60,13 @@ func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 }
+
+// @Summary Afficher une pharmacie
+// @Description Permet de renvoyer une pharmacie spécifique
+// @Tags Pharmacie
+// @Success 201 {string} string ""
+// @Failure 400 {string} string "Id invalides"
+// @Router /pharmacie/{id} [get]
 func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id_pharmacie")
 
@@ -78,6 +98,13 @@ func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 	}
 
 }
+
+// @Summary Modification d'une pharmacie
+// @Description Permet de modifier une pharmacie spécifique
+// @Tags Pharmacie
+// @Success 201 {string} string "Pharmacie modifiée avec succès"
+// @Failure 400 {string} string "Id invalides"
+// @Router /pharmacie [put]
 func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	chemin := request.PathValue("id_pharmacie")
@@ -111,6 +138,13 @@ func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 	}
 
 }
+
+// @Summary Suppression d'une pharmacie
+// @Description Permet de supprimer une pharmacie spécifique
+// @Tags Pharmacie
+// @Success 201 {string} string "pharmacie supprimée avec succès"
+// @Failure 400 {string} string "Id invalides"
+// @Router /pharmacie/{id} [delete]
 func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id_pharmacie")
 	id_pharmacie, err := strconv.Atoi(chemin)
