@@ -51,10 +51,23 @@ func Auth(next http.Handler) http.Handler {
 			return
 		}
 
+		IDFloat, ok := claims["id"].(float64)
+		if !ok {
+			http.Error(response, "ID absent", http.StatusUnauthorized)
+			return
+		}
+		userID := int(IDFloat)
+
 		ctx := context.WithValue(
 			request.Context(),
 			"role",
 			role,
+		)
+
+		ctx = context.WithValue(
+			ctx,
+			"id",
+			userID,
 		)
 		request = request.WithContext(ctx)
 		next.ServeHTTP(response, request)
