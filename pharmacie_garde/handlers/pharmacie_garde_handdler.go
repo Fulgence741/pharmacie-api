@@ -21,7 +21,6 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, "Données invalides", http.StatusBadRequest)
 		return
 	}
-
 	err = services.AjouterService(pharmacieDeGarde)
 	if err != nil {
 
