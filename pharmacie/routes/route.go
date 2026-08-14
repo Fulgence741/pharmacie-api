@@ -6,7 +6,7 @@ import (
 	"pharmacie-api/pharmacie/handlers"
 )
 
-func GestionRoutesPharmacie() {
+func GestionRoutesPharmacie(limiter *middleware.RateLimiter) {
 
 	// Routes protégées par le middleware d'authentification
 	//================================================================
@@ -26,10 +26,12 @@ func GestionRoutesPharmacie() {
 	// Route accessible à tous
 	http.Handle(
 		"GET /pharmacie",
-		middleware.Logger(
-			middleware.Auth(
-				http.HandlerFunc(
-					handlers.ListerPharmacie)),
+		middleware.RateLimit(limiter)(
+			middleware.Logger(
+				middleware.Auth(
+					http.HandlerFunc(
+						handlers.ListerPharmacie)),
+			),
 		),
 	)
 

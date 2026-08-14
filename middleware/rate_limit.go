@@ -7,84 +7,76 @@ import (
 	"time"
 )
 
-type RateLimitClient struct {
-	Count     int
-	startedAt time.Time
+type IPState struct {
+	Requests int
+	Start    time.Time
 }
 
-var ipClients = make(map[string]*RateLimitClient)
+type RateLimiter struct {
+	limit   int
+	window  time.Duration
+	clients map[string]IPState
+	mu      sync.Mutex
+}
 
-var userClients = make(map[int]*RateLimitClient)
+func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
+	return &RateLimiter{
+		limit:   limit,
+		window:  window,
+		clients: make(map[string]IPState),
+	}
+}
 
-var rateLimitMutex sync.Mutex
+func (request *RateLimiter) Allow(ip string) bool {
+	request.mu.Lock()
+	defer request.mu.Unlock()
+	state, exists := request.clients[ip]
+	if !exists {
+		state = IPState{
+			Requests: 1,
+			Start:    time.Now(),
+		}
 
-const (
-	publicLimit        = 10
-	authenticatedLimit = 100
-	rateLimitWindow    = time.Minute
-)
+		request.clients[ip] = state
+		return true
+	}
+	now := time.Now()
+	elapsed := now.Sub(state.Start)
 
-func autoriserClient(client *RateLimitClient, limite int) bool {
-
-	if time.Since(client.startedAt) >= rateLimitWindow {
-		client.Count = 1
-		client.startedAt = time.Now()
+	if elapsed >= request.window {
+		state.Requests = 1
+		state.Start = now
+		request.clients[ip] = state
 
 		return true
 	}
 
-	if client.Count >= limite {
+	if state.Requests >= request.limit {
 		return false
 	}
-
-	client.Count++
-
+	state.Requests++
+	request.clients[ip] = state
 	return true
 }
 
-func recupererIP(request *http.Request) string {
-	host, _, err := net.SplitHostPort(request.RemoteAddr)
-	if err != nil {
-		return request.RemoteAddr
-	}
-	return host
-}
+func RateLimit(limiter *RateLimiter) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
-func recupererID(request *http.Request) (int, bool) {
-	id, ok := request.Context().Value("id").(int)
-	if !ok {
-		return 0, false
-	}
+			ip, _, err := net.SplitHostPort(request.RemoteAddr)
 
-	return id, true
-}
-
-func RateLimit(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-
-		id, authentifie := recupererID(request)
-
-		if authentifie {
-			rateLimitMutex.Lock()
-			client, existe := userClients[id]
-
-			if !existe {
-				userClients[id] = &RateLimitClient{
-					Count:     1,
-					startedAt: time.Now(),
-				}
-				rateLimitMutex.Unlock()
-				next.ServeHTTP(response, request)
+			if err != nil {
+				http.Error(response, "Adresse IP invalide", http.StatusBadRequest)
 				return
 			}
-			if autoriserClient(client, authenticatedLimit) {
-				rateLimitMutex.Unlock()
-				http.Error(response, "Trop de requêtes", http.StatusTooManyRequests)
+
+			if !limiter.Allow(ip) {
+				http.Error(response, "Too Many Requests", http.StatusTooManyRequests)
 				return
 			}
-			rateLimitMutex.Unlock()
+
 			next.ServeHTTP(response, request)
-			return
-		}
-	})
+
+		})
+	}
 }
