@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"pharmacie-api/database"
 	"pharmacie-api/users/models"
 )
@@ -82,4 +83,48 @@ func SupprimerUserDB(id int) error {
 	`
 	_, err := database.DB.Exec(requete, id)
 	return err
+}
+
+func ModifierRoleDB(id int, role string) error {
+	requete := `
+				UPDATE users
+					SET role = $1
+					WHERE id = $2
+	`
+	resultat, err := database.DB.Exec(requete, role, id)
+	if err != nil {
+		return err
+	}
+
+	nombre, err := resultat.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if nombre == 0 {
+		return errors.New("Utilisateur introuvable")
+	}
+
+	return nil
+}
+
+func AfficherUserDB(id int) (models.User, error) {
+	var afficherU models.User
+	requete := `
+				SELECT id,
+				nom,
+				email,
+				fonction, 
+				role FROM users WHERE id = $1
+	`
+
+	err := database.DB.QueryRow(requete, id).Scan(
+		&afficherU.ID_USER,
+		&afficherU.Nom,
+		&afficherU.Email,
+		&afficherU.Fonction,
+		&afficherU.Role,
+	)
+
+	return afficherU, err
 }

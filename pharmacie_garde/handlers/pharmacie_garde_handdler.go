@@ -8,6 +8,12 @@ import (
 	"strconv"
 )
 
+// @Summary Ajouter pharmacie_garde
+// @Description Permet de faire un ajouter de pharmacie et de garde en faisant un lien par Id
+// @Tags Pharmacie-garde
+// @Success 201 {string} string "Oppération réussie"
+// @Failure 401 {string} string "Erreur lors de l'ajout"
+// @Router /pharmacie-garde [post]
 func Ajouter(response http.ResponseWriter, request *http.Request) {
 	var pharmacieDeGarde models.PharmacieGarde
 	err := json.NewDecoder(request.Body).Decode(&pharmacieDeGarde)
@@ -15,7 +21,6 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, "Données invalides", http.StatusBadRequest)
 		return
 	}
-
 	err = services.AjouterService(pharmacieDeGarde)
 	if err != nil {
 
@@ -32,6 +37,12 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// @Summary Lister les pharmacies de garde
+// @Description Permet de renvoyer la liste de toutes les pharmacies de gardes disponibles en base de donnée
+// @Tags Pharmacie-garde
+// @Success 201 {string} string ""
+// @Failure 400 {string} string ""
+// @Router /pharmacie-garde [get]
 func Lister(response http.ResponseWriter, request *http.Request) {
 	pharmacieGarde, err := services.ListerService()
 
@@ -49,6 +60,12 @@ func Lister(response http.ResponseWriter, request *http.Request) {
 
 }
 
+// @Summary suppression de pharmacie-garde
+// @Description Permet de supprimer la liaison qui est entre une pharmacie et une garde sans toutefois supprimer la pharmacie ni la garde
+// @Tags Pharmacie-garde
+// @Success 201 {string} string "Oppération réussie"
+// @Failure 400 {string} string "Id invalide"
+// @Router /pharmacie-garde/{id} [delete]
 func Supprimer(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id")
 	id, err := strconv.Atoi(chemin)

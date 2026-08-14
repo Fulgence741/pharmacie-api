@@ -8,6 +8,7 @@ import (
 func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 
 	requete := `
+<<<<<<< HEAD
 					INSERT INTO pharmacies (nom,
 					 adresse, 
 					 telephone,
@@ -18,6 +19,18 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 					  $3,
 					   $4,
 					    $5)	
+=======
+					INSERT INTO pharmacies (nom, 
+					adresse, 
+					telephone, 
+					email, 
+					ville)
+					VALUES ($1,
+					 $2, 
+					 $3, 
+					 $4,
+					  $5)	
+>>>>>>> 79d0acd0ff2a9d9b2d01555ade4c930605366176
 	`
 	_, err := database.DB.Exec(requete,
 		newPharmacie.Nom,
@@ -33,11 +46,19 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 func ListerPharmacieDB() ([]models.Pharmacie, error) {
 	requete := `
 						SELECT id_pharmacie,
+<<<<<<< HEAD
 						 nom, 
 						 adresse,
 						  telephone, 
 						  email,
 						   ville FROM pharmacies
+=======
+						 nom,
+						  adresse,
+						   telephone,
+						    email,
+							 ville FROM pharmacies
+>>>>>>> 79d0acd0ff2a9d9b2d01555ade4c930605366176
 		`
 	rows, err := database.DB.Query(requete)
 	if err != nil {
@@ -77,8 +98,13 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 			 nom,
 			  adresse,
 			   telephone,
+<<<<<<< HEAD
 			    email,
 				 ville FROM pharmacies WHERE id_pharmacie = $1
+=======
+			    email, 
+				ville FROM pharmacies WHERE id_pharmacie = $1
+>>>>>>> 79d0acd0ff2a9d9b2d01555ade4c930605366176
 						`
 	err := database.DB.QueryRow(requete, id_pharmacie).Scan(
 		&afficherPharmacie.ID_PHARMACIE,
@@ -102,7 +128,7 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 					telephone = $3,
 					email = $4,
 					ville = $5 
-					WHERE id = $6
+					WHERE id_pharmacie = $6
 
 	`
 	_, err := database.DB.Exec(requete,
@@ -117,7 +143,7 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 
 func SupprimerPharmacieDB(id int) error {
 	requete := `
-				DELETE FROM pharmacies WHERE id = $1 
+				DELETE FROM pharmacies WHERE id_pharmacie = $1 
 `
 
 	_, err := database.DB.Exec(requete, id)

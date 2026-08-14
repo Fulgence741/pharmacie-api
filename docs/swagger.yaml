@@ -1,0 +1,287 @@
+basePath: /
+host: localhost:8080
+info:
+  contact: {}
+  description: API de gestion des pharmacies, gardes et utilisateurs
+  title: Pharmacie API
+  version: "1.0"
+paths:
+  /garde:
+    get:
+      description: Permet de renvvoyer la liste toutes les gardes disponibles en base
+        de données
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Liste de gardes
+      tags:
+      - Garde
+    post:
+      description: Permet d'ajouter une garde
+      responses:
+        "201":
+          description: Garde ajoutée aavec succès
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: ajout d'une garde
+      tags:
+      - Garde
+  /garde/{id}:
+    delete:
+      description: Permet de supprimer une garde spécifique
+      responses:
+        "201":
+          description: Garde supprimé avec succès
+          schema:
+            type: string
+        "400":
+          description: Id non valide
+          schema:
+            type: string
+      summary: Supression de garde
+      tags:
+      - Garde
+    get:
+      description: Permet de renvoyer une garde spécifique
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "401":
+          description: Id non valide
+          schema:
+            type: string
+      summary: Affichage de garde
+      tags:
+      - Garde
+    put:
+      description: Permet de de modifier une garde spécifique
+      responses:
+        "201":
+          description: Garde modifiée avec succès
+          schema:
+            type: string
+        "400":
+          description: Id invalides
+          schema:
+            type: string
+      summary: Modification de garde
+      tags:
+      - Garde
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Permet à un utilisateur de se connecter
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Connexion réussie
+          schema:
+            type: string
+        "401":
+          description: Email ou mot de passe incorrect
+          schema:
+            type: string
+      summary: Connexion utilisateur
+      tags:
+      - Auth
+  /pharmacie:
+    get:
+      description: Permet de renvoyer la liste de toutes pharmacies disponible en
+        base de donnée
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Lister pharmacie
+      tags:
+      - Pharmacie
+    post:
+      description: Permet d'ajouter une pharmacie
+      responses:
+        "201":
+          description: Pharmacie ajoutée avec succès
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Ajouter une pharmacie
+      tags:
+      - Pharmacie
+    put:
+      description: Permet de modifier une pharmacie spécifique
+      responses:
+        "201":
+          description: Pharmacie modifiée avec succès
+          schema:
+            type: string
+        "400":
+          description: Id invalides
+          schema:
+            type: string
+      summary: Modification d'une pharmacie
+      tags:
+      - Pharmacie
+  /pharmacie-garde:
+    get:
+      description: Permet de renvoyer la liste de toutes les pharmacies de gardes
+        disponibles en base de donnée
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Lister les pharmacies de garde
+      tags:
+      - Pharmacie-garde
+    post:
+      description: Permet de faire un ajouter de pharmacie et de garde en faisant
+        un lien par Id
+      responses:
+        "201":
+          description: Oppération réussie
+          schema:
+            type: string
+        "401":
+          description: Erreur lors de l'ajout
+          schema:
+            type: string
+      summary: Ajouter pharmacie_garde
+      tags:
+      - Pharmacie-garde
+  /pharmacie-garde/{id}:
+    delete:
+      description: Permet de supprimer la liaison qui est entre une pharmacie et une
+        garde sans toutefois supprimer la pharmacie ni la garde
+      responses:
+        "201":
+          description: Oppération réussie
+          schema:
+            type: string
+        "400":
+          description: Id invalide
+          schema:
+            type: string
+      summary: suppression de pharmacie-garde
+      tags:
+      - Pharmacie-garde
+  /pharmacie/{id}:
+    delete:
+      description: Permet de supprimer une pharmacie spécifique
+      responses:
+        "201":
+          description: pharmacie supprimée avec succès
+          schema:
+            type: string
+        "400":
+          description: Id invalides
+          schema:
+            type: string
+      summary: Suppression d'une pharmacie
+      tags:
+      - Pharmacie
+    get:
+      description: Permet de renvoyer une pharmacie spécifique
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Id invalides
+          schema:
+            type: string
+      summary: Afficher une pharmacie
+      tags:
+      - Pharmacie
+  /user:
+    get:
+      description: Permet d'afficher la liste de tous les utilisateurs
+      produces:
+      - application/json
+      responses: {}
+      summary: Afficher les utilisateurs
+      tags:
+      - User
+    post:
+      description: Permet de s'inscrire en remplissant les champs
+      responses:
+        "201":
+          description: Utilisateur créé
+          schema:
+            type: string
+        "400":
+          description: Données invalides
+          schema:
+            type: string
+      summary: Inscription d'un utilisateur
+      tags:
+      - User
+  /user/{id}:
+    delete:
+      description: Permet à l'administrateur de supprimer un utilisateur
+      responses:
+        "200":
+          description: Utilisateur supprimé avec succès
+          schema:
+            type: string
+        "400":
+          description: Id invalide
+          schema:
+            type: string
+      summary: Supprimer un utilisateur
+      tags:
+      - User
+    get:
+      description: Permet à l'admin et le pharmacien d'afficher un utilisateur
+      responses:
+        "200":
+          description: '[user]'
+          schema:
+            type: string
+        "400":
+          description: Id invalide
+          schema:
+            type: string
+      summary: Afficher user
+      tags:
+      - User
+    patch:
+      description: Permet à l'admin de modifier le rôle d'un utilisateur
+      responses:
+        "200":
+          description: Rôle modifié avec succès
+          schema:
+            type: string
+        "400":
+          description: Données invalides
+          schema:
+            type: string
+      summary: Modifier le rôle
+      tags:
+      - User
+swagger: "2.0"
