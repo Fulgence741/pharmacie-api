@@ -8,8 +8,16 @@ import (
 func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 
 	requete := `
-					INSERT INTO pharmacies (nom, adresse, telephone, email, ville)
-					VALUES ($1, $2, $3, $4, $5)	
+					INSERT INTO pharmacies (nom,
+					 adresse, 
+					 telephone,
+					  email,
+					   ville)
+					VALUES ($1,
+					 $2,
+					  $3,
+					   $4,
+					    $5)	
 	`
 	_, err := database.DB.Exec(requete,
 		newPharmacie.Nom,
@@ -24,7 +32,12 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 
 func ListerPharmacieDB() ([]models.Pharmacie, error) {
 	requete := `
-						SELECT id_pharmacie, nom, adresse, telephone, email, ville FROM pharmacies
+						SELECT id_pharmacie,
+						 nom, 
+						 adresse,
+						  telephone, 
+						  email,
+						   ville FROM pharmacies
 		`
 	rows, err := database.DB.Query(requete)
 	if err != nil {
@@ -60,7 +73,12 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 	var afficherPharmacie models.Pharmacie
 
 	requete := `
-			SELECT id_pharmacie, nom, adresse, telephone, email, ville FROM pharmacies WHERE id_pharmacie = $1
+			SELECT id_pharmacie,
+			 nom,
+			  adresse,
+			   telephone,
+			    email,
+				 ville FROM pharmacies WHERE id_pharmacie = $1
 						`
 	err := database.DB.QueryRow(requete, id_pharmacie).Scan(
 		&afficherPharmacie.ID_PHARMACIE,
