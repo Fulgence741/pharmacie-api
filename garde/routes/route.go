@@ -6,7 +6,10 @@ import (
 	"pharmacie-api/middleware"
 )
 
-func GestionRoutesGarde() {
+func GestionRoutesGarde(
+	ipLimiter *middleware.RateLimiter,
+	userLimiter *middleware.RateLimiter,
+) {
 
 	// Routes Protgées par middleware d'authentification
 	//=============================================================
@@ -16,57 +19,67 @@ func GestionRoutesGarde() {
 		"POST /garde",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin", "pharmacien")(
-					http.HandlerFunc(
-						handlers.AjouterGarde)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin", "pharmacien")(
+						http.HandlerFunc(
+							handlers.AjouterGarde)),
+				),
 			),
 		),
 	)
 
 	// AAdministrateur et pharmacien
 	http.Handle(
-		"GET /garde",
+		"POST /garde/list",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin", "pharmacien")(
-					http.HandlerFunc(
-						handlers.ListerGardes)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin", "pharmacien")(
+						http.HandlerFunc(
+							handlers.ListerGardes)),
+				),
 			),
 		),
 	)
 
 	// Administrateur et pharmacien
 	http.Handle(
-		"GET /garde/{id_garde}",
+		"POST /garde/{id_garde}/get",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin", "pharmacien")(
-					http.HandlerFunc(
-						handlers.AfficherGarde)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin", "pharmacien")(
+						http.HandlerFunc(
+							handlers.AfficherGarde)),
+				),
 			),
 		),
 	)
 
 	//Administrateur et pharmacien
 	http.Handle(
-		"PUT /garde/{id_garde}",
+		"POST /garde/{id_garde}/put",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin", "pharmacien")(
-					http.HandlerFunc(
-						handlers.ModifierGarde)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin", "pharmacien")(
+						http.HandlerFunc(
+							handlers.ModifierGarde)),
+				),
 			),
 		),
 	)
 
 	// Uniquement pour administrateur
 	http.Handle(
-		"DELETE /garde/{id_garde}",
+		"POST /garde/{id_garde}/delete",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin")(
-					http.HandlerFunc(
-						handlers.SupprimerGarde)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin")(
+						http.HandlerFunc(
+							handlers.SupprimerGarde)),
+				),
 			),
 		),
 	)

@@ -1,21 +1,22 @@
 package middleware
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 )
 
-type IPState struct {
-	Requests int
-	Start    time.Time
+type ClientState struct {
+	Count int
+	Start time.Time
 }
 
 type RateLimiter struct {
 	limit   int
 	window  time.Duration
-	clients map[string]IPState
+	clients map[string]ClientState
 	mu      sync.Mutex
 }
 
@@ -23,60 +24,126 @@ func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 	return &RateLimiter{
 		limit:   limit,
 		window:  window,
-		clients: make(map[string]IPState),
+		clients: make(map[string]ClientState),
 	}
 }
 
-func (request *RateLimiter) Allow(ip string) bool {
-	request.mu.Lock()
-	defer request.mu.Unlock()
-	state, exists := request.clients[ip]
-	if !exists {
-		state = IPState{
-			Requests: 1,
-			Start:    time.Now(),
-		}
+func (limiter *RateLimiter) Allow(key string) bool {
+	limiter.mu.Lock()
+	defer limiter.mu.Unlock()
 
-		request.clients[ip] = state
-		return true
-	}
 	now := time.Now()
-	elapsed := now.Sub(state.Start)
 
-	if elapsed >= request.window {
-		state.Requests = 1
-		state.Start = now
-		request.clients[ip] = state
+	state, exists := limiter.clients[key]
 
+	// Première requête pour cette IP / cet utilisateur , en ce moment il est inconu
+	if !exists {
+		limiter.clients[key] = ClientState{
+			Count: 1,
+			Start: now,
+		}
 		return true
 	}
 
-	if state.Requests >= request.limit {
+	// La fenêtre est terminée
+	if now.Sub(state.Start) >= limiter.window {
+		limiter.clients[key] = ClientState{
+			Count: 1,
+			Start: now,
+		}
+		return true
+	}
+
+	// Limite atteinte
+	if state.Count >= limiter.limit {
 		return false
 	}
-	state.Requests++
-	request.clients[ip] = state
+
+	// Incrémentation du compteur
+	state.Count++
+	limiter.clients[key] = state
+
 	return true
 }
 
-func RateLimit(limiter *RateLimiter) func(http.Handler) http.Handler {
+func (limiter *RateLimiter) Cleanup() {
+	limiter.mu.Lock()
+	defer limiter.mu.Unlock()
+
+	now := time.Now()
+
+	for key, state := range limiter.clients {
+		if now.Sub(state.Start) >= limiter.window {
+			delete(limiter.clients, key)
+		}
+	}
+}
+
+// Le middleware pour implémenter les deux, Limite par IP et limite par ID
+func RateLimit(
+	ipLimiter *RateLimiter,
+	userLimiter *RateLimiter,
+) func(http.Handler) http.Handler {
+
 	return func(next http.Handler) http.Handler {
+
 		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+
+			// ========================================
+			// 1. Rate limit par IP
+			// ========================================
 
 			ip, _, err := net.SplitHostPort(request.RemoteAddr)
 
 			if err != nil {
-				http.Error(response, "Adresse IP invalide", http.StatusBadRequest)
+				http.Error(
+					response,
+					"Adresse IP invalide",
+					http.StatusBadRequest,
+				)
 				return
 			}
 
-			if !limiter.Allow(ip) {
-				http.Error(response, "Too Many Requests", http.StatusTooManyRequests)
+			if !ipLimiter.Allow("ip:" + ip) {
+				http.Error(
+					response,
+					"Too Many Requests",
+					http.StatusTooManyRequests,
+				)
 				return
 			}
+
+			// ========================================
+			// 2. Rate limit par User ID
+			// ========================================
+			if userLimiter != nil {
+
+				userID, ok := request.Context().Value("id").(int)
+
+				if !ok {
+					http.Error(
+						response,
+						"Utilisateur non identifié",
+						http.StatusUnauthorized,
+					)
+					return
+				}
+
+				userKey := fmt.Sprintf("user:%d", userID)
+
+				if !userLimiter.Allow(userKey) {
+					http.Error(
+						response,
+						"Too Many Requests",
+						http.StatusTooManyRequests,
+					)
+					return
+				}
+			}
+
+			// On passe la main au handler
 
 			next.ServeHTTP(response, request)
-
 		})
 	}
 }

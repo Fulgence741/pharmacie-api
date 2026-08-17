@@ -27,12 +27,13 @@ func main() {
 	database.ConnexionDB()
 
 	// Mon middleware rater limite
-	limiter := middleware.NewRateLimiter(5, time.Minute)
+	ipLimiter := middleware.NewRateLimiter(5, time.Minute)    // Limite par IP
+	userLimiter := middleware.NewRateLimiter(10, time.Minute) // Limite par ID
 	// Charger toutes les routes
-	pharmacieRoutes.GestionRoutesPharmacie(limiter)
-	gardeRoutes.GestionRoutesGarde()
-	pharmacieGardeRoutes.GestionRoutesPharmacieGarde(limiter)
-	UserRoutes.GestionRoutesUsers()
+	pharmacieRoutes.GestionRoutesPharmacie(ipLimiter, userLimiter)           // Routes pharmacie
+	gardeRoutes.GestionRoutesGarde(ipLimiter, userLimiter)                   // Routes garde
+	pharmacieGardeRoutes.GestionRoutesPharmacieGarde(ipLimiter, userLimiter) // Routes pharmacie-garde
+	UserRoutes.GestionRoutesUsers(ipLimiter, userLimiter)                    // Routes User
 
 	// Middleware autour du routeur
 	swagger.SwaggerRoutes()

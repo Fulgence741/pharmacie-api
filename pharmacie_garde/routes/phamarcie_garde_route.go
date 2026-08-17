@@ -6,7 +6,10 @@ import (
 	"pharmacie-api/pharmacie_garde/handlers"
 )
 
-func GestionRoutesPharmacieGarde(limiter *middleware.RateLimiter) {
+func GestionRoutesPharmacieGarde(
+	ipLimiter *middleware.RateLimiter,
+	userLimiter *middleware.RateLimiter,
+) {
 
 	// Routes protégées par le middleware d'authentification
 	//=========================================================
@@ -16,19 +19,21 @@ func GestionRoutesPharmacieGarde(limiter *middleware.RateLimiter) {
 		"POST /pharmacie-garde",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin")(
-					http.HandlerFunc(
-						handlers.Ajouter)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin")(
+						http.HandlerFunc(
+							handlers.Ajouter)),
+				),
 			),
 		),
 	)
 
 	//Accessible à tous
 	http.Handle(
-		"GET /pharmacie-garde",
-		middleware.RateLimit(limiter)(
-			middleware.Logger(
+		"POST /pharmacie-garde/list",
 
+		middleware.Logger(
+			middleware.RateLimit(ipLimiter, nil)(
 				http.HandlerFunc(
 					handlers.Lister)),
 		),
@@ -36,12 +41,14 @@ func GestionRoutesPharmacieGarde(limiter *middleware.RateLimiter) {
 
 	// Amdinistrateur uniquement
 	http.Handle(
-		"DELETE /pharmacie-garde/{id}",
+		"POST /pharmacie-garde/{id}/delete",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin")(
-					http.HandlerFunc(
-						handlers.Supprimer)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin")(
+						http.HandlerFunc(
+							handlers.Supprimer)),
+				),
 			),
 		),
 	)

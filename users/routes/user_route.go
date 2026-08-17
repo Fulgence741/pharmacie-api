@@ -6,29 +6,35 @@ import (
 	"pharmacie-api/users/handlers"
 )
 
-func GestionRoutesUsers() {
+func GestionRoutesUsers(
+	ipLimiter *middleware.RateLimiter,
+	userLimiter *middleware.RateLimiter,
+) {
 
 	// Routes protégées par le middleware d'authentification
 	//============================================================
 
-	// Accessible à tous
+	// Route accessible  à tous
 	http.Handle(
 		"POST /user",
 		middleware.Logger(
-
-			http.HandlerFunc(
-				handlers.AjouterUser)),
+			middleware.RateLimit(ipLimiter, nil)(
+				http.HandlerFunc(
+					handlers.AjouterUser)),
+		),
 	)
 
 	// Administrateur uniquement
 	http.Handle(
-		"GET /user",
+		"POST /user/list",
 		middleware.Logger(
 
 			middleware.Auth(
-				middleware.RequireRole("admin")(
-					http.HandlerFunc(
-						handlers.ListerUser)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin")(
+						http.HandlerFunc(
+							handlers.ListerUser)),
+				),
 			),
 		),
 	)
@@ -37,37 +43,42 @@ func GestionRoutesUsers() {
 
 	http.Handle(
 
-		"DELETE /user/{id}",
+		"POST /user/{id}/delete",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin")(
-					http.HandlerFunc(
-						handlers.SupprimerUser)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin")(
+						http.HandlerFunc(
+							handlers.SupprimerUser)),
+				),
 			),
 		),
 	)
 
 	// Addministrateu uquement
 	http.Handle(
-		"PATCH /user/{id}/role",
+		"POST /user/{id}/role/patch",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin")(
-					http.HandlerFunc(
-						handlers.ModifierRole)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin")(
+						http.HandlerFunc(
+							handlers.ModifierRole)),
+				),
 			),
 		),
 	)
 
 	// Administrateur uniquement
 	http.Handle(
-		"GET /user/{id}",
+		"POST /user/{id}/get",
 		middleware.Logger(
-
 			middleware.Auth(
-				middleware.RequireRole("admin", "pharmacien")(
-					http.HandlerFunc(
-						handlers.ListerUser)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin", "pharmacien")(
+						http.HandlerFunc(
+							handlers.AfficherUser)),
+				),
 			),
 		),
 	)
@@ -78,9 +89,12 @@ func GestionRoutesUsers() {
 	// Accessible à tous
 	http.Handle(
 		"POST /login",
+
 		middleware.Logger(
-			http.HandlerFunc(
-				handlers.ConnexionUser),
+			middleware.RateLimit(ipLimiter, nil)(
+				http.HandlerFunc(
+					handlers.ConnexionUser),
+			),
 		),
 	)
 

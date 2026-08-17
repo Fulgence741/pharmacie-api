@@ -6,7 +6,10 @@ import (
 	"pharmacie-api/pharmacie/handlers"
 )
 
-func GestionRoutesPharmacie(limiter *middleware.RateLimiter) {
+func GestionRoutesPharmacie(
+	ipLimiter *middleware.RateLimiter,
+	userLimiter *middleware.RateLimiter,
+) {
 
 	// Routes protégées par le middleware d'authentification
 	//================================================================
@@ -25,21 +28,20 @@ func GestionRoutesPharmacie(limiter *middleware.RateLimiter) {
 
 	// Route accessible à tous
 	http.Handle(
-		"GET /pharmacie",
-		middleware.RateLimit(limiter)(
-			middleware.Logger(
-				middleware.Auth(
-					http.HandlerFunc(
-						handlers.ListerPharmacie)),
-			),
+		"POST /pharmacie/list",
+
+		middleware.Logger(
+			middleware.RateLimit(ipLimiter, nil)(
+				http.HandlerFunc(
+					handlers.ListerPharmacie)),
 		),
 	)
 
 	// Route accessible à tous
 	http.Handle(
-		"GET /pharmacie/{id_pharmacie}",
+		"POST /pharmacie/{id_pharmacie}/get",
 		middleware.Logger(
-			middleware.Auth(
+			middleware.RateLimit(ipLimiter, nil)(
 				http.HandlerFunc(
 					handlers.AfficherPharmacie)),
 		),
@@ -47,24 +49,28 @@ func GestionRoutesPharmacie(limiter *middleware.RateLimiter) {
 
 	// Administrateur et pharmacien
 	http.Handle(
-		"PUT /pharmacie/{id_pharmacie}",
+		"POST /pharmacie/{id_pharmacie}/put",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin", "pharmacien")(
-					http.HandlerFunc(
-						handlers.ModifierPharmacie)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin", "pharmacien")(
+						http.HandlerFunc(
+							handlers.ModifierPharmacie)),
+				),
 			),
 		),
 	)
 
 	// Uniquement pour l'administrateur
 	http.Handle(
-		"DELETE /pharmacie/{id_pharmacie}",
+		"POST /pharmacie/{id_pharmacie}/delete",
 		middleware.Logger(
 			middleware.Auth(
-				middleware.RequireRole("admin")(
-					http.HandlerFunc(
-						handlers.SupprimerPharmacie)),
+				middleware.RateLimit(ipLimiter, userLimiter)(
+					middleware.RequireRole("admin")(
+						http.HandlerFunc(
+							handlers.SupprimerPharmacie)),
+				),
 			),
 		),
 	)
