@@ -7,6 +7,7 @@ import (
 
 func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 
+	// Requête pour pour ajouter une nouvelle pharmacie
 	requete := `
 					INSERT INTO pharmacies (nom,
 					 adresse, 
@@ -31,6 +32,8 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 }
 
 func ListerPharmacieDB() ([]models.Pharmacie, error) {
+
+	// Requête pour lister toutes les pharmacies disponibles en base de donnée
 	requete := `
 						SELECT id_pharmacie,
 						 nom, 
@@ -72,6 +75,7 @@ func ListerPharmacieDB() ([]models.Pharmacie, error) {
 func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 	var afficherPharmacie models.Pharmacie
 
+	// Requête pour afficher une pharmacie par id
 	requete := `
 			SELECT id_pharmacie,
 			 nom,
@@ -94,7 +98,7 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 }
 
 func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
-
+	// Requête pour modifier une pharmacie
 	requete := `
 					UPDATE pharmacies 
 					SET nom = $1,
@@ -116,6 +120,8 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 }
 
 func SupprimerPharmacieDB(id int) error {
+
+	// Reuqête pour supprimer une pharmacie
 	requete := `
 				DELETE FROM pharmacies WHERE id = $1 
 `

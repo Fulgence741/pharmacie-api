@@ -28,9 +28,7 @@ func AjouterUserService(user models.User) error {
 	if user.Fonction == "" {
 		return errors.New("Le champ fonction est obligatoire")
 	}
-	if user.Role == "" {
-		return errors.New("Le champ role est obligaatoire")
-	}
+
 	motDePasseHache, err := bcrypt.GenerateFromPassword(
 		[]byte(user.Password),
 		bcrypt.DefaultCost,

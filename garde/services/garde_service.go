@@ -8,6 +8,7 @@ import (
 
 func AjouterGardeService(garde models.Garde) error {
 
+	// Règles de validation
 	if garde.DateGarde == "" {
 		return errors.New("La date de la garde est obligatoire")
 	}

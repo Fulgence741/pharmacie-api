@@ -6,6 +6,8 @@ import (
 )
 
 func AjouterDB(new models.PharmacieGarde) error {
+
+	// Requête pour ajouter une nouvelle garde en base de donnée
 	requete := `
 							INSERT INTO pharmacie_garde (id_pharmacie, id_garde)
 							VALUES ($1, $2)
@@ -17,6 +19,7 @@ func AjouterDB(new models.PharmacieGarde) error {
 
 }
 func ListerByGardeDB() ([]models.PharmacieGardeA, error) {
+	// Requête pour lister toutes les pharmacies de gardes disponibles en base de donnée
 	requete := `
 					SELECT 
 					p.nom,

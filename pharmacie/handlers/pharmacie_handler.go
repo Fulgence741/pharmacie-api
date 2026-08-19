@@ -43,7 +43,7 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Tags Pharmacie
 // @Success 201 {string} string ""
 // @Failure 400 {string} string ""
-// @Router /pharmacie [get]
+// @Router /pharmacie/list [post]
 func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	liste, err := services.ListerPharmacieServices()
@@ -66,7 +66,7 @@ func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Tags Pharmacie
 // @Success 201 {string} string ""
 // @Failure 400 {string} string "Id invalides"
-// @Router /pharmacie/{id} [get]
+// @Router /pharmacie/{id}/get [post]
 func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id_pharmacie")
 
@@ -104,7 +104,7 @@ func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Tags Pharmacie
 // @Success 201 {string} string "Pharmacie modifiée avec succès"
 // @Failure 400 {string} string "Id invalides"
-// @Router /pharmacie [put]
+// @Router /pharmacie/{id_pharmacie}/put [post]
 func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	chemin := request.PathValue("id_pharmacie")
@@ -144,7 +144,7 @@ func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Tags Pharmacie
 // @Success 201 {string} string "pharmacie supprimée avec succès"
 // @Failure 400 {string} string "Id invalides"
-// @Router /pharmacie/{id} [delete]
+// @Router /pharmacie/{id_harmacie}/delete [post]
 func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id_pharmacie")
 	id_pharmacie, err := strconv.Atoi(chemin)

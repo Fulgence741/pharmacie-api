@@ -8,18 +8,23 @@ import (
 	"time"
 )
 
+// Objet qui représente représente l'état de n'importe quelle clé.
+
 type ClientState struct {
-	Count int
-	Start time.Time
+	Count int       // Stock le nombre de requete effectué
+	Start time.Time // stock le moment ou la fenêtre actuelle de limitation commence
 }
+
+// Objet qui rassemble toutes les informations et outils nécessaires pour appliquer une limitation de requêtes.
 
 type RateLimiter struct {
-	limit   int
-	window  time.Duration
-	clients map[string]ClientState
-	mu      sync.Mutex
+	limit   int                    // le nombre maximum de requête
+	window  time.Duration          // la durée pendant laquelle on compte les requêtes
+	clients map[string]ClientState //l'état associé à une clé qui identifie le client.
+	mutex   sync.Mutex             // Vérrou pour ne pas que deux exécutions du concurents du code modifient la map en même temps
 }
 
+// Construction d'un rate limit
 func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 	return &RateLimiter{
 		limit:   limit,
@@ -29,60 +34,62 @@ func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 }
 
 func (limiter *RateLimiter) Allow(key string) bool {
-	limiter.mu.Lock()
-	defer limiter.mu.Unlock()
+	limiter.mutex.Lock()         // vérouille l'opération pendant l'execution par une clé
+	defer limiter.mutex.Unlock() // defer exécute le unclock à la fin de la fonction
 
-	now := time.Now()
+	now := time.Now() // Récupération de l'heure actuelle et la met dans la variable now
 
-	state, exists := limiter.clients[key]
+	state, exists := limiter.clients[key] // Donne-moi l'état associé à cette clé et dis-moi si cette clé existe.
 
-	// Première requête pour cette IP / cet utilisateur , en ce moment il est inconu
-	if !exists {
+	if !exists { // Si la clé n'existe pas
+
+		// Dans ma map, à cette clé, enregistre ce ClientState
 		limiter.clients[key] = ClientState{
 			Count: 1,
 			Start: now,
 		}
-		return true
+		return true // Oui
 	}
 
 	// La fenêtre est terminée
-	if now.Sub(state.Start) >= limiter.window {
+	if now.Sub(state.Start) >= limiter.window { // vérifier entre les deux temps  , et voir s'il est supérieur ou égale à la limite autorisée
 		limiter.clients[key] = ClientState{
 			Count: 1,
-			Start: now,
+			Start: now, // si c'est vrai alors on réinitialise et on commence une nouvelle fenêtre de requette
 		}
 		return true
 	}
 
 	// Limite atteinte
-	if state.Count >= limiter.limit {
-		return false
+	if state.Count >= limiter.limit { //  on vérifie la limite
+		return false // la requête est refusée
 	}
 
 	// Incrémentation du compteur
-	state.Count++
-	limiter.clients[key] = state
+	state.Count++                // sinon on incrémente
+	limiter.clients[key] = state // on remet l'état qui a été modifié dans la map
 
-	return true
+	return true // la requête est autorisée
 }
 
+// Fonction qui sert à supprimer les clients qui ont terminés leur fenêtre
 func (limiter *RateLimiter) Cleanup() {
-	limiter.mu.Lock()
-	defer limiter.mu.Unlock()
+	limiter.mutex.Lock()         // Verouille
+	defer limiter.mutex.Unlock() // Deverouille à la fin de la fonction
 
-	now := time.Now()
+	now := time.Now() // prends le temps de maintenant
 
-	for key, state := range limiter.clients {
-		if now.Sub(state.Start) >= limiter.window {
-			delete(limiter.clients, key)
+	for key, state := range limiter.clients { // entre dans la map et parcours là
+		if now.Sub(state.Start) >= limiter.window { // si la durée écoulée depuis le début de sa fenêtre est supérieure ou égale à la durée de la fenêtre
+			delete(limiter.clients, key) // supprime cette clé
 		}
 	}
 }
 
 // Le middleware pour implémenter les deux, Limite par IP et limite par ID
 func RateLimit(
-	ipLimiter *RateLimiter,
-	userLimiter *RateLimiter,
+	ipLimiter *RateLimiter, // controle les ip
+	userLimiter *RateLimiter, // controle les utilisateurs authentifiés
 ) func(http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
@@ -90,44 +97,14 @@ func RateLimit(
 		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
 			// ========================================
-			// 1. Rate limit par IP
+			// 2. Rate limit par user ID
 			// ========================================
+			userID, ok := request.Context().Value("id").(int)
 
-			ip, _, err := net.SplitHostPort(request.RemoteAddr)
+			if ok && userLimiter != nil {
 
-			if err != nil {
-				http.Error(
-					response,
-					"Adresse IP invalide",
-					http.StatusBadRequest,
-				)
-				return
-			}
-
-			if !ipLimiter.Allow("ip:" + ip) {
-				http.Error(
-					response,
-					"Too Many Requests",
-					http.StatusTooManyRequests,
-				)
-				return
-			}
-
-			// ========================================
-			// 2. Rate limit par User ID
-			// ========================================
-			if userLimiter != nil {
-
-				userID, ok := request.Context().Value("id").(int)
-
-				if !ok {
-					http.Error(
-						response,
-						"Utilisateur non identifié",
-						http.StatusUnauthorized,
-					)
-					return
-				}
+				// L'utilisateur est authentifié.
+				// On utilise donc son User ID comme clé.
 
 				userKey := fmt.Sprintf("user:%d", userID)
 
@@ -139,10 +116,38 @@ func RateLimit(
 					)
 					return
 				}
+
+				// La limite utilisateur est respectée.
+				next.ServeHTTP(response, request)
+				return
 			}
 
-			// On passe la main au handler
+			// ========================================
+			// 2. Rate limit par IP
+			// ========================================
+			ip, _, err := net.SplitHostPort(request.RemoteAddr)
 
+			if err != nil {
+				http.Error(
+					response,
+					"Adresse IP invalide",
+					http.StatusBadRequest,
+				)
+				return
+			}
+
+			// On utilise l'IP comme clé.
+
+			if !ipLimiter.Allow("ip:" + ip) {
+				http.Error(
+					response,
+					"Too Many Requests",
+					http.StatusTooManyRequests,
+				)
+				return
+			}
+
+			// Si tout se passe bien on passe la main au handler pour qu'il puisse être exécuté
 			next.ServeHTTP(response, request)
 		})
 	}

@@ -43,7 +43,7 @@ func AjouterUser(response http.ResponseWriter, request *http.Request) {
 // @Description Permet d'afficher la liste de tous les utilisateurs
 // @Tags User
 // @Produce json
-// @Router /user [get]
+// @Router /user/list [post]
 func ListerUser(response http.ResponseWriter, request *http.Request) {
 	user, err := services.ListerUserService()
 	if err != nil {
@@ -106,7 +106,7 @@ func ConnexionUser(response http.ResponseWriter, request *http.Request) {
 // @Tags User
 // @Success 200 {string} string "Utilisateur supprimé avec succès"
 // @Failure 400 {string} string "Id invalide"
-// @Router /user/{id} [delete]
+// @Router /user/{id} [post]
 func SupprimerUser(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id")
 	id, err := strconv.Atoi(chemin)
@@ -136,7 +136,7 @@ func SupprimerUser(response http.ResponseWriter, request *http.Request) {
 // @Tags User
 // @Success 200 {string} string "Rôle modifié avec succès"
 // @Failure 400 {string} string "Données invalides"
-// @Router /user/{id} [patch]
+// @Router /user/{id}/role/patch [post]
 func ModifierRole(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id")
 
@@ -174,7 +174,7 @@ func ModifierRole(response http.ResponseWriter, request *http.Request) {
 // @Tags User
 // @Success 200 {string} string "[user]"
 // @Failure 400 {string} string "Id invalide"
-// @Router /user/{id} [get]
+// @Router /user/{id}/get [post]
 func AfficherUser(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id")
 	id, err := strconv.Atoi(chemin)

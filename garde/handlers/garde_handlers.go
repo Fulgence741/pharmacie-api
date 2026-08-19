@@ -44,7 +44,7 @@ func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 // @Tags Garde
 // @Success 201 {string} string ""
 // @Failure 400 {string} string ""
-// @Router /garde [get]
+// @Router /garde/list [post]
 func ListerGardes(response http.ResponseWriter, request *http.Request) {
 	liste, err := services.ListerGardeService()
 	if err != nil {
@@ -66,7 +66,7 @@ func ListerGardes(response http.ResponseWriter, request *http.Request) {
 // @Tags Garde
 // @Success 201 {string} string ""
 // @Failure 401 {string} string "Id non valide"
-// @Router /garde/{id} [get]
+// @Router /garde/{id_garde}/get [post]
 func AfficherGarde(response http.ResponseWriter, request *http.Request) {
 
 	chemin := request.PathValue("id_garde")
@@ -100,7 +100,7 @@ func AfficherGarde(response http.ResponseWriter, request *http.Request) {
 // @Tags Garde
 // @Success 201 {string} string "Garde modifiée avec succès"
 // @Failure 400 {string} string "Id invalides"
-// @Router /garde/{id} [put]
+// @Router /garde/{id_garde}/put [post]
 func ModifierGarde(response http.ResponseWriter, request *http.Request) {
 
 	chemin := request.PathValue("id_garde")
@@ -137,7 +137,7 @@ func ModifierGarde(response http.ResponseWriter, request *http.Request) {
 // @Tags Garde
 // @Success 201 {string} string "Garde supprimé avec succès"
 // @Failure 400 {string} string "Id non valide"
-// @Router /garde/{id} [delete]
+// @Router /garde/{id_garde}/delete [post]
 func SupprimerGarde(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id_garde")
 	id_garde, err := strconv.Atoi(chemin)

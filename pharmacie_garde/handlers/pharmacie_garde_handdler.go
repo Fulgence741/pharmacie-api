@@ -42,7 +42,7 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 // @Tags Pharmacie-garde
 // @Success 201 {string} string ""
 // @Failure 400 {string} string ""
-// @Router /pharmacie-garde [get]
+// @Router /pharmacie-garde/list [post]
 func Lister(response http.ResponseWriter, request *http.Request) {
 	pharmacieGarde, err := services.ListerService()
 
@@ -65,7 +65,7 @@ func Lister(response http.ResponseWriter, request *http.Request) {
 // @Tags Pharmacie-garde
 // @Success 201 {string} string "Oppération réussie"
 // @Failure 400 {string} string "Id invalide"
-// @Router /pharmacie-garde/{id} [delete]
+// @Router /pharmacie-garde/{id}/delete [post]
 func Supprimer(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id")
 	id, err := strconv.Atoi(chemin)
