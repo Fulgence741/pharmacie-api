@@ -16,27 +16,6 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/garde": {
-            "get": {
-                "description": "Permet de renvvoyer la liste toutes les gardes disponibles en base de données",
-                "tags": [
-                    "Garde"
-                ],
-                "summary": "Liste de gardes",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Permet d'ajouter une garde",
                 "tags": [
@@ -59,8 +38,54 @@ const docTemplate = `{
                 }
             }
         },
-        "/garde/{id}": {
-            "get": {
+        "/garde/list": {
+            "post": {
+                "description": "Permet de renvvoyer la liste toutes les gardes disponibles en base de données",
+                "tags": [
+                    "Garde"
+                ],
+                "summary": "Liste de gardes",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/garde/{id_garde}/delete": {
+            "post": {
+                "description": "Permet de supprimer une garde spécifique",
+                "tags": [
+                    "Garde"
+                ],
+                "summary": "Supression de garde",
+                "responses": {
+                    "201": {
+                        "description": "Garde supprimé avec succès",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Id non valide",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/garde/{id_garde}/get": {
+            "post": {
                 "description": "Permet de renvoyer une garde spécifique",
                 "tags": [
                     "Garde"
@@ -80,8 +105,10 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "put": {
+            }
+        },
+        "/garde/{id_garde}/put": {
+            "post": {
                 "description": "Permet de de modifier une garde spécifique",
                 "tags": [
                     "Garde"
@@ -96,27 +123,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Id invalides",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Permet de supprimer une garde spécifique",
-                "tags": [
-                    "Garde"
-                ],
-                "summary": "Supression de garde",
-                "responses": {
-                    "201": {
-                        "description": "Garde supprimé avec succès",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Id non valide",
                         "schema": {
                             "type": "string"
                         }
@@ -154,48 +160,6 @@ const docTemplate = `{
             }
         },
         "/pharmacie": {
-            "get": {
-                "description": "Permet de renvoyer la liste de toutes pharmacies disponible en base de donnée",
-                "tags": [
-                    "Pharmacie"
-                ],
-                "summary": "Lister pharmacie",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Permet de modifier une pharmacie spécifique",
-                "tags": [
-                    "Pharmacie"
-                ],
-                "summary": "Modification d'une pharmacie",
-                "responses": {
-                    "201": {
-                        "description": "Pharmacie modifiée avec succès",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Id invalides",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Permet d'ajouter une pharmacie",
                 "tags": [
@@ -219,27 +183,6 @@ const docTemplate = `{
             }
         },
         "/pharmacie-garde": {
-            "get": {
-                "description": "Permet de renvoyer la liste de toutes les pharmacies de gardes disponibles en base de donnée",
-                "tags": [
-                    "Pharmacie-garde"
-                ],
-                "summary": "Lister les pharmacies de garde",
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
             "post": {
                 "description": "Permet de faire un ajouter de pharmacie et de garde en faisant un lien par Id",
                 "tags": [
@@ -262,8 +205,31 @@ const docTemplate = `{
                 }
             }
         },
-        "/pharmacie-garde/{id}": {
-            "delete": {
+        "/pharmacie-garde/list": {
+            "post": {
+                "description": "Permet de renvoyer la liste de toutes les pharmacies de gardes disponibles en base de donnée",
+                "tags": [
+                    "Pharmacie-garde"
+                ],
+                "summary": "Lister les pharmacies de garde",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pharmacie-garde/{id}/delete": {
+            "post": {
                 "description": "Permet de supprimer la liaison qui est entre une pharmacie et une garde sans toutefois supprimer la pharmacie ni la garde",
                 "tags": [
                     "Pharmacie-garde"
@@ -285,13 +251,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/pharmacie/{id}": {
-            "get": {
-                "description": "Permet de renvoyer une pharmacie spécifique",
+        "/pharmacie/list": {
+            "post": {
+                "description": "Permet de renvoyer la liste de toutes pharmacies disponible en base de donnée",
                 "tags": [
                     "Pharmacie"
                 ],
-                "summary": "Afficher une pharmacie",
+                "summary": "Lister pharmacie",
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -300,14 +266,16 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Id invalides",
+                        "description": "Bad Request",
                         "schema": {
                             "type": "string"
                         }
                     }
                 }
-            },
-            "delete": {
+            }
+        },
+        "/pharmacie/{id_harmacie}/delete": {
+            "post": {
                 "description": "Permet de supprimer une pharmacie spécifique",
                 "tags": [
                     "Pharmacie"
@@ -329,18 +297,53 @@ const docTemplate = `{
                 }
             }
         },
-        "/user": {
-            "get": {
-                "description": "Permet d'afficher la liste de tous les utilisateurs",
-                "produces": [
-                    "application/json"
-                ],
+        "/pharmacie/{id_pharmacie}/put": {
+            "post": {
+                "description": "Permet de modifier une pharmacie spécifique",
                 "tags": [
-                    "User"
+                    "Pharmacie"
                 ],
-                "summary": "Afficher les utilisateurs",
-                "responses": {}
-            },
+                "summary": "Modification d'une pharmacie",
+                "responses": {
+                    "201": {
+                        "description": "Pharmacie modifiée avec succès",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Id invalides",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pharmacie/{id}/get": {
+            "post": {
+                "description": "Permet de renvoyer une pharmacie spécifique",
+                "tags": [
+                    "Pharmacie"
+                ],
+                "summary": "Afficher une pharmacie",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Id invalides",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
             "post": {
                 "description": "Permet de s'inscrire en remplissant les champs",
                 "tags": [
@@ -363,29 +366,21 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/{id}": {
-            "get": {
-                "description": "Permet à l'admin et le pharmacien d'afficher un utilisateur",
+        "/user/list": {
+            "post": {
+                "description": "Permet d'afficher la liste de tous les utilisateurs",
+                "produces": [
+                    "application/json"
+                ],
                 "tags": [
                     "User"
                 ],
-                "summary": "Afficher user",
-                "responses": {
-                    "200": {
-                        "description": "[user]",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Id invalide",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "delete": {
+                "summary": "Afficher les utilisateurs",
+                "responses": {}
+            }
+        },
+        "/user/{id}": {
+            "post": {
                 "description": "Permet à l'administrateur de supprimer un utilisateur",
                 "tags": [
                     "User"
@@ -405,8 +400,33 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "patch": {
+            }
+        },
+        "/user/{id}/get": {
+            "post": {
+                "description": "Permet à l'admin et le pharmacien d'afficher un utilisateur",
+                "tags": [
+                    "User"
+                ],
+                "summary": "Afficher user",
+                "responses": {
+                    "200": {
+                        "description": "[user]",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Id invalide",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/{id}/role/patch": {
+            "post": {
                 "description": "Permet à l'admin de modifier le rôle d'un utilisateur",
                 "tags": [
                     "User"

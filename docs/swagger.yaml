@@ -7,21 +7,6 @@ info:
   version: "1.0"
 paths:
   /garde:
-    get:
-      description: Permet de renvvoyer la liste toutes les gardes disponibles en base
-        de données
-      responses:
-        "201":
-          description: Created
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      summary: Liste de gardes
-      tags:
-      - Garde
     post:
       description: Permet d'ajouter une garde
       responses:
@@ -36,8 +21,8 @@ paths:
       summary: ajout d'une garde
       tags:
       - Garde
-  /garde/{id}:
-    delete:
+  /garde/{id_garde}/delete:
+    post:
       description: Permet de supprimer une garde spécifique
       responses:
         "201":
@@ -51,7 +36,8 @@ paths:
       summary: Supression de garde
       tags:
       - Garde
-    get:
+  /garde/{id_garde}/get:
+    post:
       description: Permet de renvoyer une garde spécifique
       responses:
         "201":
@@ -65,7 +51,8 @@ paths:
       summary: Affichage de garde
       tags:
       - Garde
-    put:
+  /garde/{id_garde}/put:
+    post:
       description: Permet de de modifier une garde spécifique
       responses:
         "201":
@@ -77,6 +64,22 @@ paths:
           schema:
             type: string
       summary: Modification de garde
+      tags:
+      - Garde
+  /garde/list:
+    post:
+      description: Permet de renvvoyer la liste toutes les gardes disponibles en base
+        de données
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Liste de gardes
       tags:
       - Garde
   /login:
@@ -99,21 +102,6 @@ paths:
       tags:
       - Auth
   /pharmacie:
-    get:
-      description: Permet de renvoyer la liste de toutes pharmacies disponible en
-        base de donnée
-      responses:
-        "201":
-          description: Created
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      summary: Lister pharmacie
-      tags:
-      - Pharmacie
     post:
       description: Permet d'ajouter une pharmacie
       responses:
@@ -128,36 +116,7 @@ paths:
       summary: Ajouter une pharmacie
       tags:
       - Pharmacie
-    put:
-      description: Permet de modifier une pharmacie spécifique
-      responses:
-        "201":
-          description: Pharmacie modifiée avec succès
-          schema:
-            type: string
-        "400":
-          description: Id invalides
-          schema:
-            type: string
-      summary: Modification d'une pharmacie
-      tags:
-      - Pharmacie
   /pharmacie-garde:
-    get:
-      description: Permet de renvoyer la liste de toutes les pharmacies de gardes
-        disponibles en base de donnée
-      responses:
-        "201":
-          description: Created
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-      summary: Lister les pharmacies de garde
-      tags:
-      - Pharmacie-garde
     post:
       description: Permet de faire un ajouter de pharmacie et de garde en faisant
         un lien par Id
@@ -173,8 +132,8 @@ paths:
       summary: Ajouter pharmacie_garde
       tags:
       - Pharmacie-garde
-  /pharmacie-garde/{id}:
-    delete:
+  /pharmacie-garde/{id}/delete:
+    post:
       description: Permet de supprimer la liaison qui est entre une pharmacie et une
         garde sans toutefois supprimer la pharmacie ni la garde
       responses:
@@ -189,8 +148,24 @@ paths:
       summary: suppression de pharmacie-garde
       tags:
       - Pharmacie-garde
-  /pharmacie/{id}:
-    delete:
+  /pharmacie-garde/list:
+    post:
+      description: Permet de renvoyer la liste de toutes les pharmacies de gardes
+        disponibles en base de donnée
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Lister les pharmacies de garde
+      tags:
+      - Pharmacie-garde
+  /pharmacie/{id_harmacie}/delete:
+    post:
       description: Permet de supprimer une pharmacie spécifique
       responses:
         "201":
@@ -204,7 +179,23 @@ paths:
       summary: Suppression d'une pharmacie
       tags:
       - Pharmacie
-    get:
+  /pharmacie/{id_pharmacie}/put:
+    post:
+      description: Permet de modifier une pharmacie spécifique
+      responses:
+        "201":
+          description: Pharmacie modifiée avec succès
+          schema:
+            type: string
+        "400":
+          description: Id invalides
+          schema:
+            type: string
+      summary: Modification d'une pharmacie
+      tags:
+      - Pharmacie
+  /pharmacie/{id}/get:
+    post:
       description: Permet de renvoyer une pharmacie spécifique
       responses:
         "201":
@@ -218,15 +209,23 @@ paths:
       summary: Afficher une pharmacie
       tags:
       - Pharmacie
-  /user:
-    get:
-      description: Permet d'afficher la liste de tous les utilisateurs
-      produces:
-      - application/json
-      responses: {}
-      summary: Afficher les utilisateurs
+  /pharmacie/list:
+    post:
+      description: Permet de renvoyer la liste de toutes pharmacies disponible en
+        base de donnée
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Lister pharmacie
       tags:
-      - User
+      - Pharmacie
+  /user:
     post:
       description: Permet de s'inscrire en remplissant les champs
       responses:
@@ -242,7 +241,7 @@ paths:
       tags:
       - User
   /user/{id}:
-    delete:
+    post:
       description: Permet à l'administrateur de supprimer un utilisateur
       responses:
         "200":
@@ -256,7 +255,8 @@ paths:
       summary: Supprimer un utilisateur
       tags:
       - User
-    get:
+  /user/{id}/get:
+    post:
       description: Permet à l'admin et le pharmacien d'afficher un utilisateur
       responses:
         "200":
@@ -270,7 +270,8 @@ paths:
       summary: Afficher user
       tags:
       - User
-    patch:
+  /user/{id}/role/patch:
+    post:
       description: Permet à l'admin de modifier le rôle d'un utilisateur
       responses:
         "200":
@@ -282,6 +283,15 @@ paths:
           schema:
             type: string
       summary: Modifier le rôle
+      tags:
+      - User
+  /user/list:
+    post:
+      description: Permet d'afficher la liste de tous les utilisateurs
+      produces:
+      - application/json
+      responses: {}
+      summary: Afficher les utilisateurs
       tags:
       - User
 swagger: "2.0"

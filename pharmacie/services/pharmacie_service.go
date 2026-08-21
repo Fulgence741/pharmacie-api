@@ -8,6 +8,8 @@ import (
 
 func AjouterPharmacieServices(pharmacie models.Pharmacie) error {
 
+	// Règles de validation métier
+
 	if pharmacie.Nom == "" {
 		return errors.New("Le champ nom est obligatoire")
 	}
