@@ -4,6 +4,7 @@ import (
 	"errors"
 	"pharmacie-api/pharmacie/models"
 	"pharmacie-api/pharmacie/repositories"
+	"pharmacie-api/utils"
 )
 
 func AjouterPharmacieServices(pharmacie models.Pharmacie) error {
@@ -30,8 +31,12 @@ func AjouterPharmacieServices(pharmacie models.Pharmacie) error {
 	return repositories.AjouterPharmacieDB(pharmacie)
 }
 
-func ListerPharmacieServices() ([]models.Pharmacie, error) {
-	pharmacie, err := repositories.ListerPharmacieDB()
+func ListerPharmacieServices(pagination utils.Pagination) ([]models.Pharmacie, error) {
+
+	pharmacie, err := repositories.ListerPharmacieDB(
+		pagination.Limit,
+		pagination.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}

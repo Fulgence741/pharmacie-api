@@ -4,6 +4,7 @@ import (
 	"errors"
 	"pharmacie-api/users/models"
 	"pharmacie-api/users/repositories"
+	"pharmacie-api/utils"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -42,8 +43,9 @@ func AjouterUserService(user models.User) error {
 	return repositories.AjouterUserDB(user)
 }
 
-func ListerUserService() ([]models.User, error) {
-	user, err := repositories.ListerUserDB()
+func ListerUserService(pagination utils.Pagination) ([]models.User, error) {
+	user, err := repositories.ListerUserDB(pagination.Limit,
+		pagination.Offset)
 	if err != nil {
 		return nil, err
 	}

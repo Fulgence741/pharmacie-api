@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"pharmacie-api/garde/models"
 	"pharmacie-api/garde/services"
+	"pharmacie-api/utils"
 	"strconv"
 )
 
@@ -46,7 +47,8 @@ func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string ""
 // @Router /garde/list [post]
 func ListerGardes(response http.ResponseWriter, request *http.Request) {
-	liste, err := services.ListerGardeService()
+	pagination := utils.GetPagination(request)
+	liste, err := services.ListerGardeService(pagination)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

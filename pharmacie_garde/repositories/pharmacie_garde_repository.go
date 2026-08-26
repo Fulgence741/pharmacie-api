@@ -18,7 +18,7 @@ func AjouterDB(new models.PharmacieGarde) error {
 	return err
 
 }
-func ListerByGardeDB() ([]models.PharmacieGardeA, error) {
+func ListerByGardeDB(limit int, offset int) ([]models.PharmacieGardeA, error) {
 	// Requête pour lister toutes les pharmacies de gardes disponibles en base de donnée
 	requete := `
 					SELECT 
@@ -33,14 +33,15 @@ func ListerByGardeDB() ([]models.PharmacieGardeA, error) {
 					ON pg.id_pharmacie = p.id_pharmacie
 					JOIN gardes	g
 					ON pg.id_garde = g.id_garde
+					LIMIT $1 OFFSET $2
 	`
-	rows, err := database.DB.Query(requete)
+	rows, err := database.DB.Query(requete, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var pharmacieGardes []models.PharmacieGardeA
+	pharmacieGardes := make([]models.PharmacieGardeA, 0)
 	for rows.Next() {
 		var pharmacieGarde models.PharmacieGardeA
 		err := rows.Scan(

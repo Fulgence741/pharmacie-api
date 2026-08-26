@@ -24,15 +24,19 @@ func AjouterGardeDB(newGarde models.Garde) error {
 	return err
 }
 
-func ListerGardesDB() ([]models.Garde, error) {
+func ListerGardesDB(limit int, offset int) ([]models.Garde, error) {
 	requete := `
 						SELECT id_garde,
 						 nom_garde,
 						  date_garde,
 						   heure_debut,
 						    heure_fin FROM gardes
+							LIMIT $1 OFFSET $2
 		`
-	rows, err := database.DB.Query(requete)
+	rows, err := database.DB.Query(requete,
+		limit,
+		offset)
+
 	if err != nil {
 		return nil, err
 	}

@@ -42,6 +42,7 @@ func main() {
 
 	if err != nil {
 		fmt.Println("Erreur du serveur", err)
+		return
 	}
 
 }

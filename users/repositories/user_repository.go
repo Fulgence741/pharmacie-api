@@ -20,12 +20,15 @@ func AjouterUserDB(newUser models.User) error {
 	return err
 }
 
-func ListerUserDB() ([]models.User, error) {
+func ListerUserDB(limit int, offset int) ([]models.User, error) {
 	requet := `
 				SELECT id, nom, email, fonction, role
 				FROM users
+				LIMIT $1 OFFSET $2
 	`
-	rows, err := database.DB.Query(requet)
+	rows, err := database.DB.Query(requet,
+		limit,
+		offset)
 	if err != nil {
 		return nil, err
 	}

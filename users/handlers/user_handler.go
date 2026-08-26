@@ -7,6 +7,7 @@ import (
 	"pharmacie-api/auth"
 	"pharmacie-api/users/models"
 	"pharmacie-api/users/services"
+	"pharmacie-api/utils"
 	"strconv"
 )
 
@@ -45,7 +46,8 @@ func AjouterUser(response http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Router /user/list [post]
 func ListerUser(response http.ResponseWriter, request *http.Request) {
-	user, err := services.ListerUserService()
+	pagination := utils.GetPagination(request)
+	user, err := services.ListerUserService(pagination)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

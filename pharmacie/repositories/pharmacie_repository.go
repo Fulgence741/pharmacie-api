@@ -31,7 +31,7 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 
 }
 
-func ListerPharmacieDB() ([]models.Pharmacie, error) {
+func ListerPharmacieDB(limit int, offset int) ([]models.Pharmacie, error) {
 
 	// Requête pour lister toutes les pharmacies disponibles en base de donnée
 	requete := `
@@ -41,8 +41,12 @@ func ListerPharmacieDB() ([]models.Pharmacie, error) {
 						  telephone, 
 						  email,
 						   ville FROM pharmacies
+						   LIMIT $1 OFFSET $2
 		`
-	rows, err := database.DB.Query(requete)
+	rows, err := database.DB.Query(requete,
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +110,7 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 					telephone = $3,
 					email = $4,
 					ville = $5 
-					WHERE id = $6
+					WHERE id_pharmacie = $6
 
 	`
 	_, err := database.DB.Exec(requete,
@@ -123,7 +127,7 @@ func SupprimerPharmacieDB(id int) error {
 
 	// Reuqête pour supprimer une pharmacie
 	requete := `
-				DELETE FROM pharmacies WHERE id = $1 
+				DELETE FROM pharmacies WHERE id_pharmacie = $1 
 `
 
 	_, err := database.DB.Exec(requete, id)

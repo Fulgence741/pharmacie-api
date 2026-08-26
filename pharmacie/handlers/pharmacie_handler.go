@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"pharmacie-api/pharmacie/models"
 	"pharmacie-api/pharmacie/services"
+	"pharmacie-api/utils"
 	"strconv"
 )
 
@@ -46,7 +47,14 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Router /pharmacie/list [post]
 func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 
-	liste, err := services.ListerPharmacieServices()
+	nom := request.URL.Query().Get("nom")
+	filter := PharmacieFilter{
+		Nom: nom,
+	}
+
+	pagination := utils.GetPagination(request)
+
+	liste, err := services.ListerPharmacieServices(pagination)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

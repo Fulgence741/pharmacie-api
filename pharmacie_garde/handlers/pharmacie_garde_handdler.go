@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"pharmacie-api/pharmacie_garde/models"
 	"pharmacie-api/pharmacie_garde/services"
+	"pharmacie-api/utils"
 	"strconv"
 )
 
@@ -15,6 +17,7 @@ import (
 // @Failure 401 {string} string "Erreur lors de l'ajout"
 // @Router /pharmacie-garde [post]
 func Ajouter(response http.ResponseWriter, request *http.Request) {
+
 	var pharmacieDeGarde models.PharmacieGarde
 	err := json.NewDecoder(request.Body).Decode(&pharmacieDeGarde)
 	if err != nil {
@@ -44,12 +47,21 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string ""
 // @Router /pharmacie-garde/list [post]
 func Lister(response http.ResponseWriter, request *http.Request) {
-	pharmacieGarde, err := services.ListerService()
+
+	pagination := utils.GetPagination(request)
+
+	pharmacieGarde, err := services.ListerService(pagination)
 
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Println("page :", pagination.Page)
+	fmt.Println("limit :", pagination.Limit)
+	fmt.Println("offset:", pagination.Offset)
+	fmt.Println("")
+
 	response.Header().Set("Content-type", "application/json")
 	response.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(response).Encode(pharmacieGarde)
