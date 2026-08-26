@@ -47,8 +47,13 @@ func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string ""
 // @Router /garde/list [post]
 func ListerGardes(response http.ResponseWriter, request *http.Request) {
+	nom_garde := request.URL.Query().Get("nom_garde")
+
 	pagination := utils.GetPagination(request)
-	liste, err := services.ListerGardeService(pagination)
+	filter := models.GardeFilter{
+		Nom_garde: nom_garde,
+	}
+	liste, err := services.ListerGardeService(pagination, filter)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

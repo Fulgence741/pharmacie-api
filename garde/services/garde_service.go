@@ -25,10 +25,13 @@ func AjouterGardeService(garde models.Garde) error {
 	return repositories.AjouterGardeDB(garde)
 }
 
-func ListerGardeService(pagination utils.Pagination) ([]models.Garde, error) {
+func ListerGardeService(pagination utils.Pagination,
+	filter models.GardeFilter) ([]models.Garde, error) {
 
 	garde, err := repositories.ListerGardesDB(pagination.Limit,
-		pagination.Offset)
+		pagination.Offset,
+		filter,
+	)
 	if err != nil {
 		return nil, err
 	}

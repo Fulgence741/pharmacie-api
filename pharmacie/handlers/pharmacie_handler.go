@@ -48,13 +48,15 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	nom := request.URL.Query().Get("nom")
-	filter := PharmacieFilter{
-		Nom: nom,
+	ville := request.URL.Query().Get("ville")
+	filter := models.PharmacieFilter{
+		Nom:   nom,
+		Ville: ville,
 	}
 
 	pagination := utils.GetPagination(request)
 
-	liste, err := services.ListerPharmacieServices(pagination)
+	liste, err := services.ListerPharmacieServices(pagination, filter)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

@@ -46,8 +46,12 @@ func AjouterUser(response http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Router /user/list [post]
 func ListerUser(response http.ResponseWriter, request *http.Request) {
+	nom := request.URL.Query().Get("nom")
+	filter := models.UserFilter{
+		Nom: nom,
+	}
 	pagination := utils.GetPagination(request)
-	user, err := services.ListerUserService(pagination)
+	user, err := services.ListerUserService(pagination, filter)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

@@ -43,9 +43,12 @@ func AjouterUserService(user models.User) error {
 	return repositories.AjouterUserDB(user)
 }
 
-func ListerUserService(pagination utils.Pagination) ([]models.User, error) {
+func ListerUserService(
+	pagination utils.Pagination,
+	filter models.UserFilter) ([]models.User, error) {
 	user, err := repositories.ListerUserDB(pagination.Limit,
-		pagination.Offset)
+		pagination.Offset,
+		filter)
 	if err != nil {
 		return nil, err
 	}

@@ -31,11 +31,14 @@ func AjouterPharmacieServices(pharmacie models.Pharmacie) error {
 	return repositories.AjouterPharmacieDB(pharmacie)
 }
 
-func ListerPharmacieServices(pagination utils.Pagination) ([]models.Pharmacie, error) {
+func ListerPharmacieServices(
+	pagination utils.Pagination,
+	filter models.PharmacieFilter) ([]models.Pharmacie, error) {
 
 	pharmacie, err := repositories.ListerPharmacieDB(
 		pagination.Limit,
 		pagination.Offset,
+		filter,
 	)
 	if err != nil {
 		return nil, err

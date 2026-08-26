@@ -16,11 +16,14 @@ func AjouterService(pharmacieGarde models.PharmacieGarde) error {
 	return repositories.AjouterDB(pharmacieGarde)
 }
 
-func ListerService(pagination utils.Pagination) ([]models.PharmacieGardeA, error) {
+func ListerService(
+	pagination utils.Pagination,
+	filter models.PharmacieGardeFliter) ([]models.PharmacieGardeA, error) {
 
 	pharmacieGarde, err := repositories.ListerByGardeDB(
 		pagination.Limit,
 		pagination.Offset,
+		filter,
 	)
 	if err != nil {
 		return nil, err

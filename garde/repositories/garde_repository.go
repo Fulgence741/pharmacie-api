@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"pharmacie-api/database"
 	"pharmacie-api/garde/models"
 )
@@ -24,18 +25,33 @@ func AjouterGardeDB(newGarde models.Garde) error {
 	return err
 }
 
-func ListerGardesDB(limit int, offset int) ([]models.Garde, error) {
+func ListerGardesDB(
+	limit int,
+	offset int,
+	filter models.GardeFilter) ([]models.Garde, error) {
 	requete := `
 						SELECT id_garde,
 						 nom_garde,
 						  date_garde,
 						   heure_debut,
 						    heure_fin FROM gardes
-							LIMIT $1 OFFSET $2
+							
 		`
-	rows, err := database.DB.Query(requete,
-		limit,
-		offset)
+	var args []interface{}
+	paramIndex := 1
+	if filter.Nom_garde != "" {
+		requete += fmt.Sprintf(" WHERE nom_garde ILIKE $%d", paramIndex)
+		args = append(args, "%"+filter.Nom_garde+"%")
+		paramIndex++
+	}
+	requete += fmt.Sprintf(
+		"LIMIT $%d OFFSET $%d",
+		paramIndex,
+		paramIndex+1,
+	)
+	args = append(args, limit, offset)
+
+	rows, err := database.DB.Query(requete, args...)
 
 	if err != nil {
 		return nil, err

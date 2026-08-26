@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"pharmacie-api/database"
 	"pharmacie-api/pharmacie/models"
 )
@@ -31,7 +32,10 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 
 }
 
-func ListerPharmacieDB(limit int, offset int) ([]models.Pharmacie, error) {
+func ListerPharmacieDB(
+	limit int,
+	offset int,
+	filter models.PharmacieFilter) ([]models.Pharmacie, error) {
 
 	// Requête pour lister toutes les pharmacies disponibles en base de donnée
 	requete := `
@@ -40,12 +44,41 @@ func ListerPharmacieDB(limit int, offset int) ([]models.Pharmacie, error) {
 						 adresse,
 						  telephone, 
 						  email,
-						   ville FROM pharmacies
-						   LIMIT $1 OFFSET $2
+						   ville ,
+						   status FROM pharmacies
+						   
 		`
-	rows, err := database.DB.Query(requete,
-		limit,
-		offset,
+	var args []interface{}
+	paramIndex := 1
+	hasWhere := false
+	if filter.Nom != "" {
+		requete += fmt.Sprintf(" WHERE nom ILIKE $%d", paramIndex)
+		args = append(args, "%"+filter.Nom+"%")
+		paramIndex++
+		hasWhere = true
+	}
+
+	if filter.Ville != "" {
+		if hasWhere {
+			requete += fmt.Sprintf(" AND ville ILIKE $%d",
+				paramIndex)
+		} else {
+			requete += fmt.Sprintf(" WHERE ville ILIKE $%d",
+				paramIndex)
+		}
+
+		args = append(args, "%"+filter.Ville+"%")
+		paramIndex++
+		hasWhere = true
+	}
+	requete += fmt.Sprintf(
+		"LIMIT  $%d OFFSET $%d",
+		paramIndex,
+		paramIndex+1,
+	)
+	args = append(args, limit, offset)
+
+	rows, err := database.DB.Query(requete, args...,
 	)
 	if err != nil {
 		return nil, err
@@ -63,6 +96,7 @@ func ListerPharmacieDB(limit int, offset int) ([]models.Pharmacie, error) {
 			&parcourirListe.Telephone,
 			&parcourirListe.Email,
 			&parcourirListe.Ville,
+			&parcourirListe.Status,
 		)
 
 		if err != nil {
@@ -86,7 +120,8 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 			  adresse,
 			   telephone,
 			    email,
-				 ville FROM pharmacies WHERE id_pharmacie = $1
+				 ville,
+				 status FROM pharmacies WHERE id_pharmacie = $1
 						`
 	err := database.DB.QueryRow(requete, id_pharmacie).Scan(
 		&afficherPharmacie.ID_PHARMACIE,
@@ -95,6 +130,7 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 		&afficherPharmacie.Telephone,
 		&afficherPharmacie.Email,
 		&afficherPharmacie.Ville,
+		&afficherPharmacie.Status,
 	)
 
 	return afficherPharmacie, err
@@ -109,7 +145,7 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 					adresse = $2,
 					telephone = $3,
 					email = $4,
-					ville = $5 
+					ville = $5
 					WHERE id_pharmacie = $6
 
 	`

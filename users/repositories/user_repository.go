@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"pharmacie-api/database"
 	"pharmacie-api/users/models"
 )
@@ -20,15 +21,30 @@ func AjouterUserDB(newUser models.User) error {
 	return err
 }
 
-func ListerUserDB(limit int, offset int) ([]models.User, error) {
+func ListerUserDB(
+	limit int,
+	offset int,
+	filter models.UserFilter) ([]models.User, error) {
 	requet := `
 				SELECT id, nom, email, fonction, role
 				FROM users
-				LIMIT $1 OFFSET $2
 	`
-	rows, err := database.DB.Query(requet,
-		limit,
-		offset)
+	var args []interface{}
+	paramIndex := 1
+	if filter.Nom != "" {
+		requet += fmt.Sprintf(" WHERE nom ILIKE $%d", paramIndex)
+		args = append(args, "%"+filter.Nom+"%")
+		paramIndex++
+	}
+
+	requet += fmt.Sprintf(
+		"LIMIT $%d OFFSET $%d",
+		paramIndex,
+		paramIndex+1,
+	)
+
+	args = append(args, limit, offset)
+	rows, err := database.DB.Query(requet, args...)
 	if err != nil {
 		return nil, err
 	}

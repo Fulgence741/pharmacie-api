@@ -47,10 +47,14 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string ""
 // @Router /pharmacie-garde/list [post]
 func Lister(response http.ResponseWriter, request *http.Request) {
+	nom := request.URL.Query().Get("nom")
+	filter := models.PharmacieGardeFliter{
+		Nom: nom,
+	}
 
 	pagination := utils.GetPagination(request)
 
-	pharmacieGarde, err := services.ListerService(pagination)
+	pharmacieGarde, err := services.ListerService(pagination, filter)
 
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
