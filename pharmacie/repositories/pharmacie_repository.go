@@ -133,7 +133,7 @@ func ListerPharmacieDB(
 func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 	var afficherPharmacie models.Pharmacie
 
-	// Requête pour afficher une pharmacie par id
+	// Requête pour affihcher une pharmacie par id
 	requete := `
 			SELECT id_pharmacie,
 			 nom,
