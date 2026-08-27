@@ -51,6 +51,8 @@ func ListerPharmacieDB(
 	var args []interface{}
 	paramIndex := 1
 	hasWhere := false
+
+	// Filtrer par nom
 	if filter.Nom != "" {
 		requete += fmt.Sprintf(" WHERE nom ILIKE $%d", paramIndex)
 		args = append(args, "%"+filter.Nom+"%")
@@ -58,6 +60,7 @@ func ListerPharmacieDB(
 		hasWhere = true
 	}
 
+	// Filtrer par ville
 	if filter.Ville != "" {
 		if hasWhere {
 			requete += fmt.Sprintf(" AND ville ILIKE $%d",
@@ -71,8 +74,25 @@ func ListerPharmacieDB(
 		paramIndex++
 		hasWhere = true
 	}
+
+	// Filtrer par status
+	if filter.Status != "" {
+		if hasWhere {
+			requete += fmt.Sprintf(
+				" AND status = $%d",
+				paramIndex,
+			)
+		} else {
+			requete += fmt.Sprintf(" WHERE status = $%d",
+				paramIndex)
+		}
+
+		args = append(args, filter.Status)
+		paramIndex++
+		hasWhere = true
+	}
 	requete += fmt.Sprintf(
-		"LIMIT  $%d OFFSET $%d",
+		" LIMIT  $%d OFFSET $%d",
 		paramIndex,
 		paramIndex+1,
 	)

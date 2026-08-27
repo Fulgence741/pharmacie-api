@@ -49,9 +49,11 @@ func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	nom := request.URL.Query().Get("nom")
 	ville := request.URL.Query().Get("ville")
+	status := request.URL.Query().Get("status")
 	filter := models.PharmacieFilter{
-		Nom:   nom,
-		Ville: ville,
+		Nom:    nom,
+		Ville:  ville,
+		Status: status,
 	}
 
 	pagination := utils.GetPagination(request)
