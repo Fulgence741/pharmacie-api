@@ -16,3 +16,10 @@ type User struct {
 type UserFilter struct {
 	Nom string
 }
+
+// Objet pour changer le mot de passe par un utilisateur connecté
+
+type ChangerPassword struct {
+	AncienPassword  string `json:"ancien_password"`
+	NouveauPassword string `json:"nouveau_password"`
+}

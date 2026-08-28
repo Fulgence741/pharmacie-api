@@ -210,3 +210,21 @@ func AfficherUser(response http.ResponseWriter, request *http.Request) {
 	}
 
 }
+
+/* func ChangerPassword(response http.ResponseWriter, request *http.Request) {
+
+	userID, ok := request.Context().Value("id").(int)
+	if !ok {
+		http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
+		return
+	}
+
+	var changement models.ChangerPassword
+	err := json.NewDecoder(request.Body).Decode(&changement)
+	if err != nil {
+		http.Error(response, "Données invalides", http.StatusBadRequest)
+		return
+	}
+
+}
+*/

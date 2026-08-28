@@ -98,6 +98,27 @@ func GestionRoutesUsers(
 		),
 	)
 
-}
+	/*
+			// Routes pour modification de mot de passe à implémenter plus tard
+			================================================================
+		   	http.Handle(
+		       "POST /user/change-password",
+		       middleware.Logger(
+		           middleware.Auth(
+		               middleware.RateLimit(
+		                   middleware.RequireRole(
+		                       "user","admin","pharmacien",
+		                       http.HandlerFunc(
+		   						handlers.ChangerPassword)),
+		                   ),
+		               ),
+		           ),
+		       ),
 
-//ici se termine toutes mes routes
+		   }
+
+	*/
+
+	//ici se termine toutes mes routes
+
+}

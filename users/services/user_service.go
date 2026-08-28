@@ -114,3 +114,36 @@ func AfficherUserServices(id int) (models.User, error) {
 	return user, nil
 
 }
+
+/*
+// Fonction de modification de mot de passe à implémenter plus tard   !!
+======================================================================
+func ChangerPasswordServices(
+	userID int,
+	changement models.ChangerPassword,
+) error {
+	passwordHash, err := repositories.ObtenirPasswordDB(userID)
+	if err != nil {
+		return err
+	}
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(passwordHash),
+		[]byte(changement.AncienPassword),
+	)
+	if err != nil {
+		return err
+	}
+
+	if len(changement.NouveauPassword) < 8 {
+		return errors.New("Le nouveau mot de passe doit contenir au moins 8 caractères")
+	}
+
+	nouveauPasswordHash, err := bcrypt.GenerateFromPassword(
+		[]byte(changement.NouveauPassword),
+		bcrypt.DefaultCost,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+} */
