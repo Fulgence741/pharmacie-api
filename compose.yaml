@@ -1,0 +1,9 @@
+services:
+  pharmacie-api:
+    build: .
+    container_name: pharmacie-api
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+
