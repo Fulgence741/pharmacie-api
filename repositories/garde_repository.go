@@ -7,7 +7,9 @@ import (
 	"pharmacie-api/models"
 )
 
-func AjouterGardeDB(newGarde models.Garde) error {
+func AjouterGardeDB(ctx context.Context, newGarde models.Garde) error {
+
+	 
 	requete := `
 					INSERT INTO gardes (nom_garde,
 					 date_garde,
@@ -19,7 +21,7 @@ func AjouterGardeDB(newGarde models.Garde) error {
 					   		   $4)
 	`
 	_, err := database.DB.Exec(
-		context.Background(),
+		ctx,
 		requete,
 		newGarde.Nom_Garde,
 		newGarde.DateGarde,
@@ -29,6 +31,7 @@ func AjouterGardeDB(newGarde models.Garde) error {
 }
 
 func ListerGardesDB(
+	ctx context.Context,
 	limit int,
 	offset int,
 	filter models.GardeFilter) ([]models.Garde, error) {
@@ -55,7 +58,7 @@ func ListerGardesDB(
 	args = append(args, limit, offset)
 
 	rows, err := database.DB.Query(
-		context.Background(),
+		ctx,
 		requete, args...)
 
 	if err != nil {
@@ -82,7 +85,9 @@ func ListerGardesDB(
 
 }
 
-func AfficherGardeDB(id_garde int) (models.Garde, error) {
+func AfficherGardeDB(
+	ctx context.Context,
+	id_garde int) (models.Garde, error) {
 	var obtenirGarde models.Garde
 	requete := `
 						SELECT id_garde,
@@ -92,7 +97,7 @@ func AfficherGardeDB(id_garde int) (models.Garde, error) {
 						    heure_fin FROM gardes WHERE id_garde = $1
 		`
 	err := database.DB.QueryRow(
-		context.Background(),
+		ctx,
 		requete, id_garde).Scan(
 		&obtenirGarde.ID_GARDE,
 		&obtenirGarde.Nom_Garde,
@@ -103,7 +108,7 @@ func AfficherGardeDB(id_garde int) (models.Garde, error) {
 	return obtenirGarde, err
 }
 
-func ModifierGardeDB(id_garde int, putGarde models.Garde) error {
+func ModifierGardeDB(ctx context.Context, id_garde int, putGarde models.Garde) error {
 	requete := `
 					UPDATE gardes 
 					SET nom_garde = $1,
@@ -114,7 +119,7 @@ func ModifierGardeDB(id_garde int, putGarde models.Garde) error {
 
 			`
 	_, err := database.DB.Exec(
-		context.Background(),
+		ctx,
 		requete,
 		putGarde.Nom_Garde,
 		putGarde.DateGarde,
@@ -125,12 +130,12 @@ func ModifierGardeDB(id_garde int, putGarde models.Garde) error {
 
 }
 
-func SupprimerGardeDB(id_garde int) error {
+func SupprimerGardeDB(ctx context.Context, id_garde int) error {
 	requete := `
 						DELETE FROM gardes WHERE id_garde= $1 
 	`
 	_, err := database.DB.Exec(
-		context.Background(),
+		ctx,
 		requete, id_garde)
 	return err
 }

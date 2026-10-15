@@ -17,14 +17,14 @@ import (
 // @Failure 400 {string} string ""
 // @Router /pharmacie [post]
 func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
-
+	ctx := request.Context()
 	var newPharmacie models.Pharmacie
 	err := json.NewDecoder(request.Body).Decode(&newPharmacie)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = services.AjouterPharmacieServices(newPharmacie)
+	err = services.AjouterPharmacieServices(ctx, newPharmacie)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -46,7 +46,7 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string ""
 // @Router /pharmacie/list [post]
 func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
-
+	ctx := request.Context()
 	nom := request.URL.Query().Get("nom")
 	ville := request.URL.Query().Get("ville")
 	status := request.URL.Query().Get("status")
@@ -58,7 +58,7 @@ func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 
 	pagination := utils.GetPagination(request)
 
-	liste, err := services.ListerPharmacieServices(pagination, filter)
+	liste, err := services.ListerPharmacieServices(ctx, pagination, filter)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -79,7 +79,8 @@ func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Success 201 {string} string ""
 // @Failure 400 {string} string "Id invalides"
 // @Router /pharmacie/{id}/get [post]
-func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
+func AfficherPharmacie( response http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
 	chemin := request.PathValue("id_pharmacie")
 
 	id_pharmacie, err := strconv.Atoi(chemin)
@@ -89,7 +90,7 @@ func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	afficherPharmacie, err := services.AfficherPharmacieServices(id_pharmacie)
+	afficherPharmacie, err := services.AfficherPharmacieServices(ctx, id_pharmacie)
 
 	if err != nil {
 
@@ -117,7 +118,8 @@ func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Success 201 {string} string "Pharmacie modifiée avec succès"
 // @Failure 400 {string} string "Id invalides"
 // @Router /pharmacie/{id_pharmacie}/put [post]
-func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
+func ModifierPharmacie( response http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
 
 	chemin := request.PathValue("id_pharmacie")
 
@@ -135,7 +137,7 @@ func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = services.ModifierPharmacieService(id_pharmacie, putPharmacie)
+	err = services.ModifierPharmacieService(ctx, id_pharmacie, putPharmacie)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return
@@ -157,7 +159,8 @@ func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Success 201 {string} string "pharmacie supprimée avec succès"
 // @Failure 400 {string} string "Id invalides"
 // @Router /pharmacie/{id_harmacie}/delete [post]
-func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
+func SupprimerPharmacie( response http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
 	chemin := request.PathValue("id_pharmacie")
 	id_pharmacie, err := strconv.Atoi(chemin)
 	if err != nil {
@@ -165,7 +168,7 @@ func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = services.SupprimerPharmacieServices(id_pharmacie)
+	err = services.SupprimerPharmacieServices(ctx, id_pharmacie)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

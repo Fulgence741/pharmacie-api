@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"pharmacie-api/handlers"
 	"pharmacie-api/middleware"
+	
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -22,7 +23,7 @@ func GestionRoutes(
 		middleware.Logger(
 			middleware.Auth(
 				middleware.RequireRole("admin", "pharmacien")(
-					http.HandlerFunc(handlers.AjouterPharmacie),
+					http.HandlerFunc(handlers.AjouterPharmacie,  ),
 				),
 			),
 		),

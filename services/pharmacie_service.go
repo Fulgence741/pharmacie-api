@@ -1,13 +1,14 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
 )
 
-func AjouterPharmacieServices(pharmacie models.Pharmacie) error {
+func AjouterPharmacieServices(ctx context.Context, pharmacie models.Pharmacie) error {
 
 	// Règles de validation métier
 
@@ -28,14 +29,14 @@ func AjouterPharmacieServices(pharmacie models.Pharmacie) error {
 		return errors.New("Le champ ville est obligatoire")
 	}
 
-	return repositories.AjouterPharmacieDB(pharmacie)
+	return repositories.AjouterPharmacieDB(ctx, pharmacie)
 }
 
-func ListerPharmacieServices(
+func ListerPharmacieServices(ctx context.Context,
 	pagination utils.Pagination,
 	filter models.PharmacieFilter) ([]models.Pharmacie, error) {
 
-	pharmacie, err := repositories.ListerPharmacieDB(
+	pharmacie, err := repositories.ListerPharmacieDB(ctx,
 		pagination.Limit,
 		pagination.Offset,
 		filter,
@@ -47,12 +48,12 @@ func ListerPharmacieServices(
 	return pharmacie, nil
 }
 
-func AfficherPharmacieServices(id_pharmacie int) (models.Pharmacie, error) {
+func AfficherPharmacieServices(ctx context.Context, id_pharmacie int) (models.Pharmacie, error) {
 
 	if id_pharmacie <= 0 {
 		return models.Pharmacie{}, errors.New("Identifiant invalide")
 	}
-	pharmacie, err := repositories.AfficherPharmacieDB(id_pharmacie)
+	pharmacie, err := repositories.AfficherPharmacieDB(ctx, id_pharmacie)
 	if err != nil {
 		return models.Pharmacie{}, err
 	}
@@ -60,12 +61,12 @@ func AfficherPharmacieServices(id_pharmacie int) (models.Pharmacie, error) {
 	return pharmacie, nil
 }
 
-func ModifierPharmacieService(id_pharmacie int, pharmacie models.Pharmacie) error {
+func ModifierPharmacieService(ctx context.Context, id_pharmacie int, pharmacie models.Pharmacie) error {
 
 	if id_pharmacie <= 0 {
 		return errors.New("Identifiant invalide")
 	}
-	err := repositories.ModifierPharmacieDB(id_pharmacie, pharmacie)
+	err := repositories.ModifierPharmacieDB(ctx, id_pharmacie, pharmacie)
 	if err != nil {
 		return err
 	}
@@ -73,11 +74,11 @@ func ModifierPharmacieService(id_pharmacie int, pharmacie models.Pharmacie) erro
 	return nil
 }
 
-func SupprimerPharmacieServices(id_pharmacie int) error {
+func SupprimerPharmacieServices(ctx context.Context, id_pharmacie int) error {
 	if id_pharmacie <= 0 {
 		return errors.New("Identifiant invalide")
 	}
-	err := repositories.SupprimerPharmacieDB(id_pharmacie)
+	err := repositories.SupprimerPharmacieDB(ctx, id_pharmacie)
 	if err != nil {
 		return err
 	}

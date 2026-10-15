@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,15 +17,15 @@ import (
 // @Success 201 {string} string "Oppération réussie"
 // @Failure 401 {string} string "Erreur lors de l'ajout"
 // @Router /pharmacie-garde [post]
-func AjouterPharmacieGarde(response http.ResponseWriter, request *http.Request) {
-
+func AjouterPharmacieGarde( response http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
 	var pharmacieDeGarde models.PharmacieGarde
 	err := json.NewDecoder(request.Body).Decode(&pharmacieDeGarde)
 	if err != nil {
 		http.Error(response, "Données invalides", http.StatusBadRequest)
 		return
 	}
-	err = services.AjouterPharmacieGardeService(pharmacieDeGarde)
+	err = services.AjouterPharmacieGardeService(ctx, pharmacieDeGarde)
 	if err != nil {
 
 		http.Error(response, "Erreur lors de l'ajout", http.StatusInternalServerError)
@@ -47,6 +48,7 @@ func AjouterPharmacieGarde(response http.ResponseWriter, request *http.Request) 
 // @Failure 400 {string} string ""
 // @Router /pharmacie-garde/list [post]
 func ListerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
 	nom := request.URL.Query().Get("nom")
 	filter := models.PharmacieGardeFliter{
 		Nom: nom,
@@ -54,7 +56,7 @@ func ListerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
 
 	pagination := utils.GetPagination(request)
 
-	pharmacieGarde, err := services.ListerPharmacieGardeService(pagination, filter)
+	pharmacieGarde, err := services.ListerPharmacieGardeService(ctx, pagination, filter)
 
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
@@ -83,6 +85,7 @@ func ListerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string "Id invalide"
 // @Router /pharmacie-garde/{id}/delete [post]
 func SupprimerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
 	chemin := request.PathValue("id")
 	id, err := strconv.Atoi(chemin)
 	if err != nil {
@@ -90,7 +93,7 @@ func SupprimerPharmacieGarde(response http.ResponseWriter, request *http.Request
 		return
 	}
 
-	err = services.SupprimerPharmacieGardeService(id)
+	err = services.SupprimerPharmacieGardeService(ctx, id)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

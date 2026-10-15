@@ -1,26 +1,27 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
 )
 
-func AjouterPharmacieGardeService(pharmacieGarde models.PharmacieGarde) error {
+func AjouterPharmacieGardeService(ctx context.Context, pharmacieGarde models.PharmacieGarde) error {
 
 	if pharmacieGarde.PharmacieID <= 0 || pharmacieGarde.GardeID <= 0 {
 		return errors.New("Identifiant invalide")
 	}
 
-	return repositories.AjouterPharmacieGardeDB(pharmacieGarde)
+	return repositories.AjouterPharmacieGardeDB(ctx, pharmacieGarde)
 }
 
-func ListerPharmacieGardeService(
+func ListerPharmacieGardeService(ctx context.Context,
 	pagination utils.Pagination,
 	filter models.PharmacieGardeFliter) ([]models.PharmacieGardeA, error) {
 
-	pharmacieGarde, err := repositories.ListerPharmacieGardeDB(
+	pharmacieGarde, err := repositories.ListerPharmacieGardeDB(ctx,
 		pagination.Limit,
 		pagination.Offset,
 		filter,
@@ -31,12 +32,12 @@ func ListerPharmacieGardeService(
 	return pharmacieGarde, nil
 }
 
-func SupprimerPharmacieGardeService(id int) error {
+func SupprimerPharmacieGardeService(ctx context.Context, id int) error {
 
 	if id <= 0 {
 		return errors.New("Id invalide")
 	}
-	err := repositories.SupprimerPharmacieGardeDB(id)
+	err := repositories.SupprimerPharmacieGardeDB(ctx, id)
 	if err != nil {
 		return err
 	}

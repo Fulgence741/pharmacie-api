@@ -96,9 +96,8 @@ func RateLimit(
 
 		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
-			// ========================================
 			// 2. Rate limit par user ID
-			// ========================================
+
 			userID, ok := request.Context().Value("id").(int)
 
 			if ok && userLimiter != nil {
@@ -111,7 +110,7 @@ func RateLimit(
 				if !userLimiter.Allow(userKey) {
 					http.Error(
 						response,
-						"Too Many Requests",
+						"Trop de tentatives",
 						http.StatusTooManyRequests,
 					)
 					return
@@ -122,9 +121,7 @@ func RateLimit(
 				return
 			}
 
-			// ========================================
 			// 2. Rate limit par IP
-			// ========================================
 			ip, _, err := net.SplitHostPort(request.RemoteAddr)
 
 			if err != nil {
@@ -141,7 +138,7 @@ func RateLimit(
 			if !ipLimiter.Allow("ip:" + ip) {
 				http.Error(
 					response,
-					"Too Many Requests",
+					"Trop de tentatives",
 					http.StatusTooManyRequests,
 				)
 				return

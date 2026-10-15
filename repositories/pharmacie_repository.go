@@ -7,7 +7,8 @@ import (
 	"pharmacie-api/models"
 )
 
-func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
+func AjouterPharmacieDB(ctx context.Context,
+	 newPharmacie models.Pharmacie) error {
 
 	// Requête pour pour ajouter une nouvelle pharmacie
 	requete := `
@@ -22,7 +23,7 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 					   $4,
 					    $5)	
 	`
-	_, err := database.DB.Exec(context.Background(),
+	_, err := database.DB.Exec(ctx,
 		requete,
 		newPharmacie.Nom,
 		newPharmacie.Adresse,
@@ -34,7 +35,7 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 
 }
 
-func ListerPharmacieDB(
+func ListerPharmacieDB(ctx context.Context,
 	limit int,
 	offset int,
 	filter models.PharmacieFilter) ([]models.Pharmacie, error) {
@@ -100,7 +101,7 @@ func ListerPharmacieDB(
 	)
 	args = append(args, limit, offset)
 
-	rows, err := database.DB.Query(context.Background(),
+	rows, err := database.DB.Query(ctx,
 		requete, args...)
 	if err != nil {
 		return nil, err
@@ -132,7 +133,7 @@ func ListerPharmacieDB(
 
 }
 
-func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
+func AfficherPharmacieDB(ctx context.Context, id_pharmacie int) (models.Pharmacie, error) {
 	var afficherPharmacie models.Pharmacie
 
 	// Requête pour affihcher une pharmacie par id
@@ -145,7 +146,7 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 				 ville,
 				 status FROM pharmacies WHERE id_pharmacie = $1
 						`
-	err := database.DB.QueryRow(context.Background(),
+	err := database.DB.QueryRow(ctx,
 		requete, id_pharmacie).Scan(
 		&afficherPharmacie.ID_PHARMACIE,
 		&afficherPharmacie.Nom,
@@ -160,7 +161,7 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 
 }
 
-func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
+func ModifierPharmacieDB(ctx context.Context, id int, putPharmacie models.Pharmacie) error {
 	// Requête pour modifier une pharmacie
 	requete := `
 					UPDATE pharmacies 
@@ -172,7 +173,7 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 					WHERE id_pharmacie = $6
 
 	`
-	_, err := database.DB.Exec(context.Background(),
+	_, err := database.DB.Exec(ctx,
 		requete,
 		putPharmacie.Nom,
 		putPharmacie.Adresse,
@@ -183,14 +184,14 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 	return err
 }
 
-func SupprimerPharmacieDB(id int) error {
+func SupprimerPharmacieDB(ctx context.Context, id int) error {
 
 	// Reuqête pour supprimer une pharmacie
 	requete := `
 				DELETE FROM pharmacies WHERE id_pharmacie = $1 
 `
 
-	_, err := database.DB.Exec(context.Background(),
+	_, err := database.DB.Exec(ctx,
 		requete, id)
 	return err
 

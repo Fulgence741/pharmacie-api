@@ -7,7 +7,7 @@ import (
 	"pharmacie-api/models"
 )
 
-func AjouterPharmacieGardeDB(new models.PharmacieGarde) error {
+func AjouterPharmacieGardeDB(ctx context.Context, new models.PharmacieGarde) error {
 
 	// Requête pour ajouter une nouvelle garde en base de donnée
 	requete := `
@@ -15,14 +15,14 @@ func AjouterPharmacieGardeDB(new models.PharmacieGarde) error {
 							VALUES ($1, $2)
 			`
 	_, err := database.DB.Exec(
-		context.Background(),
+		ctx,
 		requete,
 		new.PharmacieID,
 		new.GardeID)
 	return err
 
 }
-func ListerPharmacieGardeDB(
+func ListerPharmacieGardeDB( ctx context.Context,
 	limit int,
 	offset int,
 	filter models.PharmacieGardeFliter) ([]models.PharmacieGardeA, error) {
@@ -58,7 +58,7 @@ func ListerPharmacieGardeDB(
 	args = append(args, limit, offset)
 
 	rows, err := database.DB.Query(
-		context.Background(),
+		ctx,
 		requete, args...)
 	if err != nil {
 		return nil, err
@@ -90,13 +90,13 @@ func ListerPharmacieGardeDB(
 	return pharmacieGardes, nil
 }
 
-func SupprimerPharmacieGardeDB(id int) error {
+func SupprimerPharmacieGardeDB(ctx context.Context, id int) error {
 	requete := `
 				DELETE FROM pharmacie_garde 
 				WHERE id = $1
 	`
 	_, err := database.DB.Exec(
-		context.Background(),
+		ctx,
 		requete, id)
 	return err
 

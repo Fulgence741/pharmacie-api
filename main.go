@@ -10,7 +10,7 @@ import (
 	"pharmacie-api/routes"
 	"time"
 
-	"github.com/joho/godotenv"
+	
 )
 
 // @title Pharmacie API
@@ -22,13 +22,10 @@ import (
 func main() {
 
 	// Initialisation de la base avant d'accepter les requêtes.
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Erreur du chargement du fichier .env :", err)
-	}
+	
 
 	config := database.LoadConfig()
-	err = database.ConnexionDB(config)
+	err := database.ConnexionDB(config)
 
 	if err != nil {
 		log.Fatal("Erreur de la connexion à postgreSQL:", err)
