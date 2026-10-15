@@ -1,7 +1,10 @@
 package services
 
 import (
-	"errors"
+	"context"
+	"database/sql"
+	stderrors "errors"
+	"pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
@@ -10,24 +13,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func AjouterUserService(user models.User) error {
+// Les services reçoivent le contexte du handler et le transmettent aux repositories
+// pour que les requêtes SQL respectent l'annulation et le délai de la requête HTTP.
+func AjouterUserService(ctx context.Context, user models.User) error {
 	if user.Nom == "" {
-		return errors.New("Le champ nom est obligatoire")
+		return errors.InvalidRequest("Le champ nom est obligatoire")
 	}
 	if user.Email == "" {
-		return errors.New("Le champ Email est obligatoire")
+		return errors.InvalidRequest("Le champ email est obligatoire")
 	}
 	if !strings.Contains(user.Email, "@") {
-		return errors.New("Email invalide")
+		return errors.InvalidRequest("Email invalide")
 	}
 	if user.Password == "" {
-		return errors.New("Le champ password est obligatoire")
+		return errors.InvalidRequest("Le champ password est obligatoire")
 	}
 	if len(user.Password) < 8 {
-		return errors.New("Le mot de passe doit conteenir au moins 8 caractères")
+		return errors.InvalidRequest("Le mot de passe doit contenir au moins 8 caractères")
 	}
 	if user.Fonction == "" {
-		return errors.New("Le champ fonction est obligatoire")
+		return errors.InvalidRequest("Le champ fonction est obligatoire")
 	}
 
 	motDePasseHache, err := bcrypt.GenerateFromPassword(
@@ -40,13 +45,13 @@ func AjouterUserService(user models.User) error {
 
 	user.Password = string(motDePasseHache)
 	user.Role = "user"
-	return repositories.AjouterUserDB(user)
+	return repositories.AjouterUserDB(ctx, user)
 }
 
-func ListerUserService(
+func ListerUserService(ctx context.Context,
 	pagination utils.Pagination,
 	filter models.UserFilter) ([]models.User, error) {
-	user, err := repositories.ListerUserDB(pagination.Limit,
+	user, err := repositories.ListerUserDB(ctx, pagination.Limit,
 		pagination.Offset,
 		filter)
 	if err != nil {
@@ -56,11 +61,14 @@ func ListerUserService(
 	return user, nil
 }
 
-func Connexion(email string, password string) (models.User, error) {
-	user, err := repositories.CnnexionUserDB(email)
+func Connexion(ctx context.Context, email string, password string) (models.User, error) {
+	user, err := repositories.CnnexionUserDB(ctx, email)
 
 	if err != nil {
-		return models.User{}, errors.New("Email incorrect")
+		if stderrors.Is(err, sql.ErrNoRows) {
+			return models.User{}, errors.Unauthorized("Email ou mot de passe incorrect")
+		}
+		return models.User{}, err
 	}
 	err = bcrypt.CompareHashAndPassword(
 		[]byte(user.Password),
@@ -68,17 +76,20 @@ func Connexion(email string, password string) (models.User, error) {
 	)
 
 	if err != nil {
-		return models.User{}, errors.New("Mot de passe incorrect")
+		if stderrors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return models.User{}, errors.Unauthorized("Email ou mot de passe incorrect")
+		}
+		return models.User{}, err
 	}
 	return user, nil
 }
 
-func SupprimerUserService(id int) error {
+func SupprimerUserService(ctx context.Context, id int) error {
 	if id <= 0 {
-		return errors.New("Id invalide")
+		return errors.InvalidRequest("Identifiant invalide")
 	}
 
-	err := repositories.SupprimerUserDB(id)
+	err := repositories.SupprimerUserDB(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -87,27 +98,27 @@ func SupprimerUserService(id int) error {
 
 }
 
-func ModifierRoleServices(id int, role string) error {
+func ModifierRoleServices(ctx context.Context, id int, role string) error {
 	if id <= 0 {
-		return errors.New("Utilisateur introuvable")
+		return errors.InvalidRequest("Identifiant invalide")
 	}
 
 	switch role {
 	case "pharmacien", "user":
 	default:
-		return errors.New("Rôle invalide")
+		return errors.InvalidRequest("Rôle invalide")
 	}
 
-	return repositories.ModifierRoleDB(id, role)
+	return repositories.ModifierRoleDB(ctx, id, role)
 }
 
-func AfficherUserServices(id int) (models.User, error) {
+func AfficherUserServices(ctx context.Context, id int) (models.User, error) {
 
 	if id <= 0 {
-		return models.User{}, errors.New("Identifiant invalide")
+		return models.User{}, errors.InvalidRequest("Identifiant invalide")
 	}
 
-	user, err := repositories.AfficherUserDB(id)
+	user, err := repositories.AfficherUserDB(ctx, id)
 	if err != nil {
 		return models.User{}, err
 	}

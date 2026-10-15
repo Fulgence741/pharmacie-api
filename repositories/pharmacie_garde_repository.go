@@ -22,7 +22,7 @@ func AjouterPharmacieGardeDB(ctx context.Context, new models.PharmacieGarde) err
 	return err
 
 }
-func ListerPharmacieGardeDB( ctx context.Context,
+func ListerPharmacieGardeDB(ctx context.Context,
 	limit int,
 	offset int,
 	filter models.PharmacieGardeFliter) ([]models.PharmacieGardeA, error) {

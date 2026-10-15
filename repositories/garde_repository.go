@@ -9,7 +9,6 @@ import (
 
 func AjouterGardeDB(ctx context.Context, newGarde models.Garde) error {
 
-	 
 	requete := `
 					INSERT INTO gardes (nom_garde,
 					 date_garde,
@@ -80,6 +79,9 @@ func ListerGardesDB(
 			return nil, err
 		}
 		listeGardes = append(listeGardes, parcourirGarde)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return listeGardes, nil
 

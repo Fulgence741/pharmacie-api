@@ -2,18 +2,20 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"pharmacie-api/database"
+	apierrors "pharmacie-api/errors"
 	"pharmacie-api/models"
 )
 
-func AjouterUserDB(newUser models.User) error {
+// Le ctx reçu est celui de la requête HTTP : ne pas le remplacer par Background,
+// afin de laisser PostgreSQL arrêter le travail si le client abandonne la requête.
+func AjouterUserDB(ctx context.Context, newUser models.User) error {
 	requete := `
 				INSERT INTO users (nom, email, password, fonction, role)
 				VALUES ($1, $2, $3, $4, $5)
 	`
-	_, err := database.DB.Exec(context.Background(), requete,
+	_, err := database.DB.Exec(ctx, requete,
 		newUser.Nom,
 		newUser.Email,
 		newUser.Password,
@@ -22,7 +24,7 @@ func AjouterUserDB(newUser models.User) error {
 	return err
 }
 
-func ListerUserDB(
+func ListerUserDB(ctx context.Context,
 	limit int,
 	offset int,
 	filter models.UserFilter) ([]models.User, error) {
@@ -45,7 +47,7 @@ func ListerUserDB(
 	)
 
 	args = append(args, limit, offset)
-	rows, err := database.DB.Query(context.Background(),
+	rows, err := database.DB.Query(ctx,
 		requet, args...)
 	if err != nil {
 		return nil, err
@@ -69,10 +71,13 @@ func ListerUserDB(
 		listeUser = append(listeUser, parcourirUser)
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return listeUser, nil
 }
 
-func CnnexionUserDB(email string) (models.User, error) {
+func CnnexionUserDB(ctx context.Context, email string) (models.User, error) {
 	var user models.User
 
 	requete := `
@@ -81,7 +86,7 @@ func CnnexionUserDB(email string) (models.User, error) {
 				WHERE email = $1
 	`
 
-	err := database.DB.QueryRow(context.Background(), requete, email).Scan(
+	err := database.DB.QueryRow(ctx, requete, email).Scan(
 		&user.ID_USER,
 		&user.Nom,
 		&user.Email,
@@ -97,41 +102,38 @@ func CnnexionUserDB(email string) (models.User, error) {
 
 }
 
-func SupprimerUserDB(id int) error {
+func SupprimerUserDB(ctx context.Context, id int) error {
 
 	requete := `
 				DELETE FROM users WHERE id = $1
 	`
-	_, err := database.DB.Exec(context.Background(),
+	_, err := database.DB.Exec(ctx,
 		requete, id)
 	return err
 }
 
-func ModifierRoleDB(id int, role string) error {
+func ModifierRoleDB(ctx context.Context, id int, role string) error {
 	requete := `
 				UPDATE users
 					SET role = $1
 					WHERE id = $2
 	`
-	resultat, err := database.DB.Exec(context.Background(),
+	resultat, err := database.DB.Exec(ctx,
 		requete, role, id)
 	if err != nil {
 		return err
 	}
 
 	nombre := resultat.RowsAffected()
-	if err != nil {
-		return err
-	}
 
 	if nombre == 0 {
-		return errors.New("Utilisateur introuvable")
+		return apierrors.NotFound("Utilisateur introuvable")
 	}
 
 	return nil
 }
 
-func AfficherUserDB(id int) (models.User, error) {
+func AfficherUserDB(ctx context.Context, id int) (models.User, error) {
 	var afficherU models.User
 	requete := `
 				SELECT id,
@@ -141,7 +143,7 @@ func AfficherUserDB(id int) (models.User, error) {
 				role FROM users WHERE id = $1
 	`
 
-	err := database.DB.QueryRow(context.Background(),
+	err := database.DB.QueryRow(ctx,
 		requete, id).Scan(
 		&afficherU.ID_USER,
 		&afficherU.Nom,
@@ -153,7 +155,7 @@ func AfficherUserDB(id int) (models.User, error) {
 	return afficherU, err
 }
 
-func ObtenirPasswordDB(userID int) (string, error) {
+func ObtenirPasswordDB(ctx context.Context, userID int) (string, error) {
 	requete := `
 					SELECT password 
 					FROM users
@@ -161,7 +163,7 @@ func ObtenirPasswordDB(userID int) (string, error) {
 	`
 	var passwordHash string
 
-	err := database.DB.QueryRow(context.Background(),
+	err := database.DB.QueryRow(ctx,
 		requete, userID).Scan(&passwordHash)
 	if err != nil {
 		return "", err

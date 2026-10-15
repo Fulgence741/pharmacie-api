@@ -1,15 +1,17 @@
 package handlers
 
 import (
-	"database/sql"
-	"encoding/json"
 	"net/http"
 	"pharmacie-api/auth"
+	"pharmacie-api/dto"
+	apierrors "pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/services"
 	"pharmacie-api/utils"
-	"strconv"
 )
+
+// Les handlers transmettent request.Context() aux services pour que l'annulation
+// de la requête et ses échéances suivent tout le chemin jusqu'à la base de données.
 
 // @Summary Inscription d'un utilisateur
 // @Description Permet de s'inscrire en remplissant les champs
@@ -18,26 +20,24 @@ import (
 // @Failure 400 {string} string "Données invalides"
 // @Router /user [post]
 func AjouterUser(response http.ResponseWriter, request *http.Request) {
-	var newUser models.User
-	err := json.NewDecoder(request.Body).Decode(&newUser)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusBadRequest)
+	var input dto.CreateUserRequest
+	if err := decodeJSON(request, &input); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	err = services.AjouterUserService(newUser)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	user := models.User{
+		Nom:      input.Nom,
+		Email:    input.Email,
+		Password: input.Password,
+		Fonction: input.Fonction,
+	}
+	if err := services.AjouterUserService(request.Context(), user); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(response).Encode("Utilisateur créé avec succès")
-	if err != nil {
-		http.Error(response, "Erreur du JSON", http.StatusInternalServerError)
-		return
-	}
+	writeJSON(response, http.StatusCreated, "Utilisateur créé avec succès")
 }
 
 // @Summary Afficher les utilisateurs
@@ -46,24 +46,13 @@ func AjouterUser(response http.ResponseWriter, request *http.Request) {
 // @Produce json
 // @Router /user/list [post]
 func ListerUser(response http.ResponseWriter, request *http.Request) {
-	nom := request.URL.Query().Get("nom")
-	filter := models.UserFilter{
-		Nom: nom,
-	}
-	pagination := utils.GetPagination(request)
-	user, err := services.ListerUserService(pagination, filter)
+	filter := models.UserFilter{Nom: request.URL.Query().Get("nom")}
+	users, err := services.ListerUserService(request.Context(), utils.GetPagination(request), filter)
 	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode(user)
-	if err != nil {
-		http.Error(response, "Erreur du JSON", http.StatusInternalServerError)
-		return
-	}
+	writeJSON(response, http.StatusOK, userResponses(users))
 }
 
 // @Summary Connexion utilisateur
@@ -75,36 +64,24 @@ func ListerUser(response http.ResponseWriter, request *http.Request) {
 // @Failure 401 {string} string "Email ou mot de passe incorrect"
 // @Router /login [post]
 func ConnexionUser(response http.ResponseWriter, request *http.Request) {
-	var user models.User
-	err := json.NewDecoder(request.Body).Decode(&user)
-
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusBadRequest)
+	var input dto.LoginRequest
+	if err := decodeJSON(request, &input); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	userDB, err := services.Connexion(user.Email, user.Password)
+	user, err := services.Connexion(request.Context(), input.Email, input.Password)
 	if err != nil {
-		http.Error(response, err.Error(), http.StatusUnauthorized)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	token, err := auth.GenererJWT(userDB)
+	token, err := auth.GenererJWT(user)
 	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode(map[string]string{
-		"token": token,
-	})
-	if err != nil {
-		http.Error(response, "Erreur du JSON", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusOK, dto.TokenResponse{Token: token})
 }
 
 // @Summary Supprimer un utilisateur
@@ -112,29 +89,18 @@ func ConnexionUser(response http.ResponseWriter, request *http.Request) {
 // @Tags User
 // @Success 200 {string} string "Utilisateur supprimé avec succès"
 // @Failure 400 {string} string "Id invalide"
-// @Router /user/{id} [post]
+// @Router /user/{id}/delete [post]
 func SupprimerUser(response http.ResponseWriter, request *http.Request) {
-	chemin := request.PathValue("id")
-	id, err := strconv.Atoi(chemin)
+	id, err := pathID(request, "id")
 	if err != nil {
-		http.Error(response, "Id invalide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	err = services.SupprimerUserService(id)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	if err := services.SupprimerUserService(request.Context(), id); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode("Utilisateur supprimé avec succès")
-	if err != nil {
-		http.Error(response, "Erreur du json", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusOK, "Utilisateur supprimé avec succès")
 }
 
 // @Summary Modifier le rôle
@@ -144,35 +110,22 @@ func SupprimerUser(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string "Données invalides"
 // @Router /user/{id}/role/patch [post]
 func ModifierRole(response http.ResponseWriter, request *http.Request) {
-	chemin := request.PathValue("id")
-
-	id, err := strconv.Atoi(chemin)
+	id, err := pathID(request, "id")
 	if err != nil {
-		http.Error(response, "Id invalide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	var donnee struct {
-		Role string `json:"role"`
-	}
-
-	err = json.NewDecoder(request.Body).Decode(&donnee)
-	if err != nil {
-		http.Error(response, "Données invalides", http.StatusBadRequest)
+	var input dto.UpdateUserRoleRequest
+	if err := decodeJSON(request, &input); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	err = services.ModifierRoleServices(id, donnee.Role)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusBadRequest)
+	if err := services.ModifierRoleServices(request.Context(), id, input.Role); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	json.NewEncoder(response).Encode(map[string]string{
-		"message": "Rôle modifié avec succès",
-	})
+	writeJSON(response, http.StatusOK, map[string]string{"message": "Rôle modifié avec succès"})
 }
 
 // @Summary Afficher user
@@ -182,49 +135,16 @@ func ModifierRole(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {string} string "Id invalide"
 // @Router /user/{id}/get [post]
 func AfficherUser(response http.ResponseWriter, request *http.Request) {
-	chemin := request.PathValue("id")
-	id, err := strconv.Atoi(chemin)
+	id, err := pathID(request, "id")
 	if err != nil {
-		http.Error(response, "Id invalide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	afficherUser, err := services.AfficherUserServices(id)
+	user, err := services.AfficherUserServices(request.Context(), id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(response, "Utilisateur non trouvé", http.StatusNotFound)
-			return
-		}
-
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-
-	err = json.NewEncoder(response).Encode(afficherUser)
-	if err != nil {
-		http.Error(response, "Erreur du json", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusOK, userResponse(user))
 }
-
-/* func ChangerPassword(response http.ResponseWriter, request *http.Request) {
-
-	userID, ok := request.Context().Value("id").(int)
-	if !ok {
-		http.Error(response, "Utilisateur non identifié", http.StatusUnauthorized)
-		return
-	}
-
-	var changement models.ChangerPassword
-	err := json.NewDecoder(request.Body).Decode(&changement)
-	if err != nil {
-		http.Error(response, "Données invalides", http.StatusBadRequest)
-		return
-	}
-
-}
-*/

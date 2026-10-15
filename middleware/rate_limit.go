@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	apierrors "pharmacie-api/errors"
 	"sync"
 	"time"
 )
@@ -98,7 +99,7 @@ func RateLimit(
 
 			// 2. Rate limit par user ID
 
-			userID, ok := request.Context().Value("id").(int)
+			userID, ok := request.Context().Value(userIDKey).(int)
 
 			if ok && userLimiter != nil {
 
@@ -108,11 +109,7 @@ func RateLimit(
 				userKey := fmt.Sprintf("user:%d", userID)
 
 				if !userLimiter.Allow(userKey) {
-					http.Error(
-						response,
-						"Trop de tentatives",
-						http.StatusTooManyRequests,
-					)
+					apierrors.WriteHTTP(response, apierrors.TooManyRequests("Trop de tentatives"))
 					return
 				}
 
@@ -125,22 +122,14 @@ func RateLimit(
 			ip, _, err := net.SplitHostPort(request.RemoteAddr)
 
 			if err != nil {
-				http.Error(
-					response,
-					"Adresse IP invalide",
-					http.StatusBadRequest,
-				)
+				apierrors.WriteHTTP(response, apierrors.InvalidRequest("Adresse IP invalide"))
 				return
 			}
 
 			// On utilise l'IP comme clé.
 
 			if !ipLimiter.Allow("ip:" + ip) {
-				http.Error(
-					response,
-					"Trop de tentatives",
-					http.StatusTooManyRequests,
-				)
+				apierrors.WriteHTTP(response, apierrors.TooManyRequests("Trop de tentatives"))
 				return
 			}
 

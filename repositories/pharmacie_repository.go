@@ -8,7 +8,7 @@ import (
 )
 
 func AjouterPharmacieDB(ctx context.Context,
-	 newPharmacie models.Pharmacie) error {
+	newPharmacie models.Pharmacie) error {
 
 	// Requête pour pour ajouter une nouvelle pharmacie
 	requete := `
@@ -127,6 +127,9 @@ func ListerPharmacieDB(ctx context.Context,
 		}
 
 		listePharmacie = append(listePharmacie, parcourirListe)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return listePharmacie, nil

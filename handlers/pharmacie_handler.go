@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"database/sql"
-	"encoding/json"
 	"net/http"
+	"pharmacie-api/dto"
+	apierrors "pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/services"
 	"pharmacie-api/utils"
-	"strconv"
 )
 
 // @Summary Ajouter une pharmacie
@@ -17,170 +16,110 @@ import (
 // @Failure 400 {string} string ""
 // @Router /pharmacie [post]
 func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-	var newPharmacie models.Pharmacie
-	err := json.NewDecoder(request.Body).Decode(&newPharmacie)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusBadRequest)
+	var input dto.PharmacieRequest
+	if err := decodeJSON(request, &input); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-	err = services.AjouterPharmacieServices(ctx, newPharmacie)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	pharmacie := pharmacieFromRequest(input)
+	if err := services.AjouterPharmacieServices(request.Context(), pharmacie); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(response).Encode("Pharmacie ajouté avec succès")
-	if err != nil {
-		http.Error(response, "Erreur du json", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusCreated, "Pharmacie ajouté avec succès")
 }
 
 // @Summary Lister pharmacie
-// @Description Permet de renvoyer la liste de toutes pharmacies disponible en base de donnée
+// @Description Permet de renvoyer la liste de toutes les pharmacies disponibles en base de données
 // @Tags Pharmacie
-// @Success 201 {string} string ""
+// @Success 200 {array} models.Pharmacie
 // @Failure 400 {string} string ""
 // @Router /pharmacie/list [post]
 func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-	nom := request.URL.Query().Get("nom")
-	ville := request.URL.Query().Get("ville")
-	status := request.URL.Query().Get("status")
+	query := request.URL.Query()
 	filter := models.PharmacieFilter{
-		Nom:    nom,
-		Ville:  ville,
-		Status: status,
+		Nom:    query.Get("nom"),
+		Ville:  query.Get("ville"),
+		Status: query.Get("status"),
 	}
-
-	pagination := utils.GetPagination(request)
-
-	liste, err := services.ListerPharmacieServices(ctx, pagination, filter)
+	pharmacies, err := services.ListerPharmacieServices(request.Context(), utils.GetPagination(request), filter)
 	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode(liste)
-	if err != nil {
-		http.Error(response, "Erreur du json", http.StatusInternalServerError)
-		return
-	}
+	writeJSON(response, http.StatusOK, pharmacieResponses(pharmacies))
 }
 
 // @Summary Afficher une pharmacie
 // @Description Permet de renvoyer une pharmacie spécifique
 // @Tags Pharmacie
-// @Success 201 {string} string ""
-// @Failure 400 {string} string "Id invalides"
-// @Router /pharmacie/{id}/get [post]
-func AfficherPharmacie( response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-	chemin := request.PathValue("id_pharmacie")
-
-	id_pharmacie, err := strconv.Atoi(chemin)
-
+// @Success 200 {object} models.Pharmacie
+// @Failure 400 {string} string "Id invalide"
+// @Router /pharmacie/{id_pharmacie}/get [post]
+func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
+	id, err := pathID(request, "id_pharmacie")
 	if err != nil {
-		http.Error(response, "ID invalide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	afficherPharmacie, err := services.AfficherPharmacieServices(ctx, id_pharmacie)
-
+	pharmacie, err := services.AfficherPharmacieServices(request.Context(), id)
 	if err != nil {
-
-		if err == sql.ErrNoRows {
-			http.Error(response, "Pharmacie non trouvé", http.StatusNotFound)
-			return
-		}
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-	response.Header().Set("Content-type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode(afficherPharmacie)
-
-	if err != nil {
-		http.Error(response, "Error du JSON", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusOK, pharmacieResponse(pharmacie))
 }
 
 // @Summary Modification d'une pharmacie
 // @Description Permet de modifier une pharmacie spécifique
 // @Tags Pharmacie
-// @Success 201 {string} string "Pharmacie modifiée avec succès"
-// @Failure 400 {string} string "Id invalides"
+// @Success 200 {string} string "Pharmacie modifiée avec succès"
+// @Failure 400 {string} string "Id invalide"
 // @Router /pharmacie/{id_pharmacie}/put [post]
-func ModifierPharmacie( response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-
-	chemin := request.PathValue("id_pharmacie")
-
-	id_pharmacie, err := strconv.Atoi(chemin)
-
+func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
+	id, err := pathID(request, "id_pharmacie")
 	if err != nil {
-		http.Error(response, "ID invalide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	var putPharmacie models.Pharmacie
-
-	err = json.NewDecoder(request.Body).Decode(&putPharmacie)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusBadRequest)
+	var input dto.PharmacieRequest
+	if err := decodeJSON(request, &input); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-	err = services.ModifierPharmacieService(ctx, id_pharmacie, putPharmacie)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	if err := services.ModifierPharmacieService(request.Context(), id, pharmacieFromRequest(input)); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode("Livre modifié avec succès")
-	if err != nil {
-		http.Error(response, "Erreur du JSON", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusOK, "Pharmacie modifiée avec succès")
 }
 
 // @Summary Suppression d'une pharmacie
 // @Description Permet de supprimer une pharmacie spécifique
 // @Tags Pharmacie
-// @Success 201 {string} string "pharmacie supprimée avec succès"
-// @Failure 400 {string} string "Id invalides"
-// @Router /pharmacie/{id_harmacie}/delete [post]
-func SupprimerPharmacie( response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-	chemin := request.PathValue("id_pharmacie")
-	id_pharmacie, err := strconv.Atoi(chemin)
+// @Success 200 {string} string "Pharmacie supprimée avec succès"
+// @Failure 400 {string} string "Id invalide"
+// @Router /pharmacie/{id_pharmacie}/delete [post]
+func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
+	id, err := pathID(request, "id_pharmacie")
 	if err != nil {
-		http.Error(response, "ID invalide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	err = services.SupprimerPharmacieServices(ctx, id_pharmacie)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	if err := services.SupprimerPharmacieServices(request.Context(), id); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
+	writeJSON(response, http.StatusOK, "Pharmacie supprimée avec succès")
+}
 
-	response.Header().Set("Content-Type", "appliction/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode("Pharmacie supprimé avec succès")
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
-
-		return
+func pharmacieFromRequest(input dto.PharmacieRequest) models.Pharmacie {
+	return models.Pharmacie{
+		Nom:       input.Nom,
+		Adresse:   input.Adresse,
+		Telephone: input.Telephone,
+		Email:     input.Email,
+		Ville:     input.Ville,
 	}
-
 }

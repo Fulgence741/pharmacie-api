@@ -2,15 +2,16 @@ package middleware
 
 import (
 	"net/http"
+	apierrors "pharmacie-api/errors"
 )
 
 func RequireRole(roleAutorise ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
-			role, ok := request.Context().Value("role").(string)
+			role, ok := request.Context().Value(userRoleKey).(string)
 			if !ok {
-				http.Error(response, "Role Absent", http.StatusUnauthorized)
+				apierrors.WriteHTTP(response, apierrors.Unauthorized("Rôle absent"))
 				return
 			}
 
@@ -23,7 +24,7 @@ func RequireRole(roleAutorise ...string) func(http.Handler) http.Handler {
 				}
 			}
 			if !autorise {
-				http.Error(response, "Accès interdit", http.StatusForbidden)
+				apierrors.WriteHTTP(response, apierrors.Forbidden("Accès interdit"))
 				return
 			}
 

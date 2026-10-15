@@ -1,8 +1,8 @@
 package services
 
 import (
-"context"
-	"errors"
+	"context"
+	"pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
@@ -12,16 +12,16 @@ func AjouterGardeService(ctx context.Context, garde models.Garde) error {
 
 	// Règles de validation
 	if garde.DateGarde == "" {
-		return errors.New("La date de la garde est obligatoire")
+		return errors.InvalidRequest("La date de la garde est obligatoire")
 	}
 	if garde.Nom_Garde == "" {
-		return errors.New("Le nom de la garde est obligatoire")
+		return errors.InvalidRequest("Le nom de la garde est obligatoire")
 	}
 	if garde.HeureDebut == "" {
-		return errors.New("L'Heure de debut est obligatoire")
+		return errors.InvalidRequest("L'heure de début est obligatoire")
 	}
 	if garde.HeureFin == "" {
-		return errors.New("L'Heure de fin est obligatoire")
+		return errors.InvalidRequest("L'heure de fin est obligatoire")
 	}
 	return repositories.AjouterGardeDB(ctx, garde)
 }
@@ -29,7 +29,7 @@ func AjouterGardeService(ctx context.Context, garde models.Garde) error {
 func ListerGardeService(ctx context.Context, pagination utils.Pagination,
 	filter models.GardeFilter) ([]models.Garde, error) {
 
-	garde, err := repositories.ListerGardesDB( ctx,
+	garde, err := repositories.ListerGardesDB(ctx,
 		pagination.Limit,
 		pagination.Offset,
 		filter,
@@ -43,7 +43,7 @@ func ListerGardeService(ctx context.Context, pagination utils.Pagination,
 
 func ObtenirGardeService(ctx context.Context, id_garde int) (models.Garde, error) {
 	if id_garde <= 0 {
-		return models.Garde{}, errors.New("Identifant invalide")
+		return models.Garde{}, errors.InvalidRequest("Identifiant invalide")
 	}
 
 	garde, err := repositories.AfficherGardeDB(ctx, id_garde)
@@ -57,7 +57,7 @@ func ObtenirGardeService(ctx context.Context, id_garde int) (models.Garde, error
 func ModifierGardeService(ctx context.Context, id_garde int, garde models.Garde) error {
 
 	if id_garde <= 0 {
-		return errors.New("Identifiant invalide")
+		return errors.InvalidRequest("Identifiant invalide")
 	}
 	err := repositories.ModifierGardeDB(ctx, id_garde, garde)
 	if err != nil {
@@ -68,7 +68,7 @@ func ModifierGardeService(ctx context.Context, id_garde int, garde models.Garde)
 
 func SupprimerGardeService(ctx context.Context, id_garde int) error {
 	if id_garde <= 0 {
-		return errors.New("Identifiant invalide")
+		return errors.InvalidRequest("Identifiant invalide")
 	}
 
 	err := repositories.SupprimerGardeDB(ctx, id_garde)

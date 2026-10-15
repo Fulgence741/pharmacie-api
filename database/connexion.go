@@ -29,8 +29,7 @@ func ConnexionDB(config *Config) error {
 		return fmt.Errorf("Dsn mal formé : %w", err)
 	}
 
-	//Créer un context pour les délais
-
+	// Le contexte d'initialisation est indépendant des requêtes HTTP et limité dans le temps.
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
 		5*time.Second,

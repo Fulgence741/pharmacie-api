@@ -1,175 +1,123 @@
 package handlers
 
 import (
-	"database/sql"
-	"encoding/json"
 	"net/http"
+	"pharmacie-api/dto"
+	apierrors "pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/services"
 	"pharmacie-api/utils"
-	"strconv"
 )
 
 // @Summary ajout d'une garde
 // @Description Permet d'ajouter une garde
 // @Tags Garde
-// @Success 201 {string} string "Garde ajoutée aavec succès"
+// @Success 201 {string} string "Garde ajoutée avec succès"
 // @Failure 400 {string} string ""
 // @Router /garde [post]
 func AjouterGarde(response http.ResponseWriter, request *http.Request) {
-
-	ctx := request.Context()
-
-	var newGarde models.Garde
-	err := json.NewDecoder(request.Body).Decode(&newGarde)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusBadRequest)
+	var input dto.GardeRequest
+	if err := decodeJSON(request, &input); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	err = services.AjouterGardeService(ctx, newGarde)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	garde := models.Garde{
+		Nom_Garde:  input.NomGarde,
+		DateGarde:  input.DateGarde,
+		HeureDebut: input.HeureDebut,
+		HeureFin:   input.HeureFin,
+	}
+	if err := services.AjouterGardeService(request.Context(), garde); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-	response.Header().Set("Content-Type", "appliction/json")
-	response.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(response).Encode("Garde ajouté avec succès")
-	if err != nil {
-		http.Error(response, "Erreur du json", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusCreated, "Garde ajoutée avec succès")
 }
 
 // @Summary Liste de gardes
-// @Description Permet de renvvoyer la liste toutes les gardes disponibles en base de données
+// @Description Permet de renvoyer la liste de toutes les gardes disponibles en base de données
 // @Tags Garde
-// @Success 201 {string} string ""
+// @Success 200 {array} models.Garde
 // @Failure 400 {string} string ""
 // @Router /garde/list [post]
-func ListerGardes( response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-	nom_garde := request.URL.Query().Get("nom_garde")
-
-	pagination := utils.GetPagination(request)
-	filter := models.GardeFilter{
-		Nom_garde: nom_garde,
-	}
-	liste, err := services.ListerGardeService(ctx, pagination, filter)
+func ListerGardes(response http.ResponseWriter, request *http.Request) {
+	filter := models.GardeFilter{Nom_garde: request.URL.Query().Get("nom_garde")}
+	gardes, err := services.ListerGardeService(request.Context(), utils.GetPagination(request), filter)
 	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode(liste)
-	if err != nil {
-		http.Error(response, "Erreur du json", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusOK, gardeResponses(gardes))
 }
 
 // @Summary Affichage de garde
 // @Description Permet de renvoyer une garde spécifique
 // @Tags Garde
-// @Success 201 {string} string ""
-// @Failure 401 {string} string "Id non valide"
+// @Success 200 {object} models.Garde
+// @Failure 400 {string} string "Id non valide"
 // @Router /garde/{id_garde}/get [post]
-func AfficherGarde( response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-
-	chemin := request.PathValue("id_garde")
-	id_garde, err := strconv.Atoi(chemin)
+func AfficherGarde(response http.ResponseWriter, request *http.Request) {
+	id, err := pathID(request, "id_garde")
 	if err != nil {
-		http.Error(response, "ID non valide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	obtenirGarde, err := services.ObtenirGardeService(ctx, id_garde)
+	garde, err := services.ObtenirGardeService(request.Context(), id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(response, "Garde non trouvée", http.StatusNotFound)
-			return
-		}
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-	response.Header().Set("Content-Type", "appliaction/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode(obtenirGarde)
-	if err != nil {
-		http.Error(response, "Erreur du JSON", http.StatusInternalServerError)
-		return
-	}
-
+	writeJSON(response, http.StatusOK, gardeResponse(garde))
 }
 
 // @Summary Modification de garde
-// @Description Permet de de modifier une garde spécifique
+// @Description Permet de modifier une garde spécifique
 // @Tags Garde
-// @Success 201 {string} string "Garde modifiée avec succès"
-// @Failure 400 {string} string "Id invalides"
+// @Success 200 {string} string "Garde modifiée avec succès"
+// @Failure 400 {string} string "Id invalide"
 // @Router /garde/{id_garde}/put [post]
 func ModifierGarde(response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-	chemin := request.PathValue("id_garde")
-	id_garde, err := strconv.Atoi(chemin)
+	id, err := pathID(request, "id_garde")
 	if err != nil {
-		http.Error(response, "ID invalide", http.StatusBadRequest)
-		return
-	}
-	var putGarde models.Garde
-	err = json.NewDecoder(request.Body).Decode(&putGarde)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
 
-	err = services.ModifierGardeService(ctx, id_garde, putGarde)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	var input dto.GardeRequest
+	if err := decodeJSON(request, &input); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Cotent-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode("Garde modifié avec succès")
-	if err != nil {
-		http.Error(response, "Erreur du json", http.StatusInternalServerError)
+	garde := models.Garde{
+		Nom_Garde:  input.NomGarde,
+		DateGarde:  input.DateGarde,
+		HeureDebut: input.HeureDebut,
+		HeureFin:   input.HeureFin,
+	}
+	if err := services.ModifierGardeService(request.Context(), id, garde); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
+	writeJSON(response, http.StatusOK, "Garde modifiée avec succès")
 }
 
-// @Summary Supression de garde
+// @Summary Suppression de garde
 // @Description Permet de supprimer une garde spécifique
 // @Tags Garde
-// @Success 201 {string} string "Garde supprimé avec succès"
+// @Success 200 {string} string "Garde supprimée avec succès"
 // @Failure 400 {string} string "Id non valide"
 // @Router /garde/{id_garde}/delete [post]
 func SupprimerGarde(response http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-	chemin := request.PathValue("id_garde")
-	id_garde, err := strconv.Atoi(chemin)
+	id, err := pathID(request, "id_garde")
 	if err != nil {
-		http.Error(response, "ID non valide", http.StatusBadRequest)
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	err = services.SupprimerGardeService(ctx,id_garde)
-	if err != nil {
-		http.Error(response, err.Error(), http.StatusInternalServerError)
+	if err := services.SupprimerGardeService(request.Context(), id); err != nil {
+		apierrors.WriteHTTP(response, err)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(response).Encode("Garde supprimé avec succès")
-	if err != nil {
-		http.Error(response, "Erreur du JSON", http.StatusInternalServerError)
-		return
-
-	}
+	writeJSON(response, http.StatusOK, "Garde supprimée avec succès")
 }

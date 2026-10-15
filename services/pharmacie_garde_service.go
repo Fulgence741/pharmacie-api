@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"errors"
+	"pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
@@ -11,7 +11,7 @@ import (
 func AjouterPharmacieGardeService(ctx context.Context, pharmacieGarde models.PharmacieGarde) error {
 
 	if pharmacieGarde.PharmacieID <= 0 || pharmacieGarde.GardeID <= 0 {
-		return errors.New("Identifiant invalide")
+		return errors.InvalidRequest("Identifiant invalide")
 	}
 
 	return repositories.AjouterPharmacieGardeDB(ctx, pharmacieGarde)
@@ -35,7 +35,7 @@ func ListerPharmacieGardeService(ctx context.Context,
 func SupprimerPharmacieGardeService(ctx context.Context, id int) error {
 
 	if id <= 0 {
-		return errors.New("Id invalide")
+		return errors.InvalidRequest("Identifiant invalide")
 	}
 	err := repositories.SupprimerPharmacieGardeDB(ctx, id)
 	if err != nil {
