@@ -20,7 +20,7 @@ const (
 func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
-		// Code exécuté avant le handler ================
+		// Code exécuté avant le handler
 
 		// Génération du token
 
@@ -80,6 +80,6 @@ func Auth(next http.Handler) http.Handler {
 		request = request.WithContext(ctx)
 		next.ServeHTTP(response, request)
 
-		// code exécuté après le handlers ================
+		// code exécuté après le handlers
 	})
 }
