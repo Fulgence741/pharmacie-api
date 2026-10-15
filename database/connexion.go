@@ -1,40 +1,42 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	"os"
 
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var DB *sql.DB
+var DB *pgxpool.Pool
 
-func ConnexionDB() {
-	var err error
+func ConnexionDB(config *Config) error {
 
-	godotenv.Load() // il lit le fichier .env
-
-	connexion := fmt.Sprintf(
-		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_SSLMODE"),
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		config.DBUser,
+		config.DBPassword,
+		config.DBHost,
+		config.DBPort,
+		config.DBName,
+		config.DBSSLMode,
 	)
-	DB, err = sql.Open("postgres", connexion)
+	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		panic(err)
+		return err
+	}
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
+	if err != nil {
+		return err
 	}
 
-	err = DB.Ping()
+	err = pool.Ping(context.Background())
+
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	fmt.Println("Connexion reussie à PostgreSQL")
+	DB = pool
+
+	return nil
 
 }

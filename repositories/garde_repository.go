@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	"pharmacie-api/database"
 	"pharmacie-api/models"
@@ -17,7 +18,9 @@ func AjouterGardeDB(newGarde models.Garde) error {
 					 		  $3,
 					   		   $4)
 	`
-	_, err := database.DB.Exec(requete,
+	_, err := database.DB.Exec(
+		context.Background(),
+		requete,
 		newGarde.Nom_Garde,
 		newGarde.DateGarde,
 		newGarde.HeureDebut,
@@ -51,7 +54,9 @@ func ListerGardesDB(
 	)
 	args = append(args, limit, offset)
 
-	rows, err := database.DB.Query(requete, args...)
+	rows, err := database.DB.Query(
+		context.Background(),
+		requete, args...)
 
 	if err != nil {
 		return nil, err
@@ -86,7 +91,9 @@ func AfficherGardeDB(id_garde int) (models.Garde, error) {
 						   heure_debut,
 						    heure_fin FROM gardes WHERE id_garde = $1
 		`
-	err := database.DB.QueryRow(requete, id_garde).Scan(
+	err := database.DB.QueryRow(
+		context.Background(),
+		requete, id_garde).Scan(
 		&obtenirGarde.ID_GARDE,
 		&obtenirGarde.Nom_Garde,
 		&obtenirGarde.DateGarde,
@@ -106,7 +113,9 @@ func ModifierGardeDB(id_garde int, putGarde models.Garde) error {
 					WHERE id_garde = $5
 
 			`
-	_, err := database.DB.Exec(requete,
+	_, err := database.DB.Exec(
+		context.Background(),
+		requete,
 		putGarde.Nom_Garde,
 		putGarde.DateGarde,
 		putGarde.HeureDebut,
@@ -120,6 +129,8 @@ func SupprimerGardeDB(id_garde int) error {
 	requete := `
 						DELETE FROM gardes WHERE id_garde= $1 
 	`
-	_, err := database.DB.Exec(requete, id_garde)
+	_, err := database.DB.Exec(
+		context.Background(),
+		requete, id_garde)
 	return err
 }

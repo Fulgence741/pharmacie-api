@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"pharmacie-api/database"
@@ -12,7 +13,7 @@ func AjouterUserDB(newUser models.User) error {
 				INSERT INTO users (nom, email, password, fonction, role)
 				VALUES ($1, $2, $3, $4, $5)
 	`
-	_, err := database.DB.Exec(requete,
+	_, err := database.DB.Exec(context.Background(), requete,
 		newUser.Nom,
 		newUser.Email,
 		newUser.Password,
@@ -44,7 +45,8 @@ func ListerUserDB(
 	)
 
 	args = append(args, limit, offset)
-	rows, err := database.DB.Query(requet, args...)
+	rows, err := database.DB.Query(context.Background(),
+		requet, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +81,7 @@ func CnnexionUserDB(email string) (models.User, error) {
 				WHERE email = $1
 	`
 
-	err := database.DB.QueryRow(requete, email).Scan(
+	err := database.DB.QueryRow(context.Background(), requete, email).Scan(
 		&user.ID_USER,
 		&user.Nom,
 		&user.Email,
@@ -100,7 +102,8 @@ func SupprimerUserDB(id int) error {
 	requete := `
 				DELETE FROM users WHERE id = $1
 	`
-	_, err := database.DB.Exec(requete, id)
+	_, err := database.DB.Exec(context.Background(),
+		requete, id)
 	return err
 }
 
@@ -110,12 +113,13 @@ func ModifierRoleDB(id int, role string) error {
 					SET role = $1
 					WHERE id = $2
 	`
-	resultat, err := database.DB.Exec(requete, role, id)
+	resultat, err := database.DB.Exec(context.Background(),
+		requete, role, id)
 	if err != nil {
 		return err
 	}
 
-	nombre, err := resultat.RowsAffected()
+	nombre := resultat.RowsAffected()
 	if err != nil {
 		return err
 	}
@@ -137,7 +141,8 @@ func AfficherUserDB(id int) (models.User, error) {
 				role FROM users WHERE id = $1
 	`
 
-	err := database.DB.QueryRow(requete, id).Scan(
+	err := database.DB.QueryRow(context.Background(),
+		requete, id).Scan(
 		&afficherU.ID_USER,
 		&afficherU.Nom,
 		&afficherU.Email,
@@ -156,7 +161,8 @@ func ObtenirPasswordDB(userID int) (string, error) {
 	`
 	var passwordHash string
 
-	err := database.DB.QueryRow(requete, userID).Scan(&passwordHash)
+	err := database.DB.QueryRow(context.Background(),
+		requete, userID).Scan(&passwordHash)
 	if err != nil {
 		return "", err
 	}

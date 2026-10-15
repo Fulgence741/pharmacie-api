@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	"pharmacie-api/database"
 	"pharmacie-api/models"
@@ -21,7 +22,8 @@ func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {
 					   $4,
 					    $5)	
 	`
-	_, err := database.DB.Exec(requete,
+	_, err := database.DB.Exec(context.Background(),
+		requete,
 		newPharmacie.Nom,
 		newPharmacie.Adresse,
 		newPharmacie.Telephone,
@@ -98,8 +100,8 @@ func ListerPharmacieDB(
 	)
 	args = append(args, limit, offset)
 
-	rows, err := database.DB.Query(requete, args...,
-	)
+	rows, err := database.DB.Query(context.Background(),
+		requete, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +145,8 @@ func AfficherPharmacieDB(id_pharmacie int) (models.Pharmacie, error) {
 				 ville,
 				 status FROM pharmacies WHERE id_pharmacie = $1
 						`
-	err := database.DB.QueryRow(requete, id_pharmacie).Scan(
+	err := database.DB.QueryRow(context.Background(),
+		requete, id_pharmacie).Scan(
 		&afficherPharmacie.ID_PHARMACIE,
 		&afficherPharmacie.Nom,
 		&afficherPharmacie.Adresse,
@@ -169,7 +172,8 @@ func ModifierPharmacieDB(id int, putPharmacie models.Pharmacie) error {
 					WHERE id_pharmacie = $6
 
 	`
-	_, err := database.DB.Exec(requete,
+	_, err := database.DB.Exec(context.Background(),
+		requete,
 		putPharmacie.Nom,
 		putPharmacie.Adresse,
 		putPharmacie.Telephone,
@@ -186,7 +190,8 @@ func SupprimerPharmacieDB(id int) error {
 				DELETE FROM pharmacies WHERE id_pharmacie = $1 
 `
 
-	_, err := database.DB.Exec(requete, id)
+	_, err := database.DB.Exec(context.Background(),
+		requete, id)
 	return err
 
 }

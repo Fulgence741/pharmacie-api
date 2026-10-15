@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	"pharmacie-api/database"
 	"pharmacie-api/models"
@@ -13,7 +14,9 @@ func AjouterPharmacieGardeDB(new models.PharmacieGarde) error {
 							INSERT INTO pharmacie_garde (id_pharmacie, id_garde)
 							VALUES ($1, $2)
 			`
-	_, err := database.DB.Exec(requete,
+	_, err := database.DB.Exec(
+		context.Background(),
+		requete,
 		new.PharmacieID,
 		new.GardeID)
 	return err
@@ -54,7 +57,9 @@ func ListerPharmacieGardeDB(
 	)
 	args = append(args, limit, offset)
 
-	rows, err := database.DB.Query(requete, args...)
+	rows, err := database.DB.Query(
+		context.Background(),
+		requete, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +95,9 @@ func SupprimerPharmacieGardeDB(id int) error {
 				DELETE FROM pharmacie_garde 
 				WHERE id = $1
 	`
-	_, err := database.DB.Exec(requete, id)
+	_, err := database.DB.Exec(
+		context.Background(),
+		requete, id)
 	return err
 
 }

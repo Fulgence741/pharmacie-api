@@ -14,7 +14,9 @@ func GestionRoutes(
 	ipLimiter *middleware.RateLimiter,
 	userLimiter *middleware.RateLimiter,
 ) {
-	// Pharmacies : consultation publique, écriture réservée aux rôles autorisés.
+	/* Pharmacies : consultation publique, écriture réservée aux rôles autorisés.
+	============================================================================*/
+
 	http.Handle(
 		"POST /pharmacie",
 		middleware.Logger(
@@ -66,7 +68,8 @@ func GestionRoutes(
 		),
 	)
 
-	// Gardes : toutes les opérations nécessitent une authentification.
+	/* Gardes : toutes les opérations nécessitent une authentification.
+	=========================================================================*/
 	http.Handle(
 		"POST /garde",
 		middleware.Logger(
@@ -128,7 +131,8 @@ func GestionRoutes(
 		),
 	)
 
-	// Pharmacies de garde : création/suppression admin, consultation publique.
+	/* Pharmacies de garde : création/suppression admin, consultation publique.
+	=====================================================================*/
 	http.Handle(
 		"POST /pharmacie-garde",
 		middleware.Logger(
@@ -162,7 +166,8 @@ func GestionRoutes(
 		),
 	)
 
-	// Utilisateurs : inscription et connexion publiques, administration protégée.
+	/* Utilisateurs : inscription et connexion publiques, administration protégée.
+	==============================================================================*/
 	http.Handle(
 		"POST /user",
 		middleware.Logger(
@@ -228,6 +233,6 @@ func GestionRoutes(
 		),
 	)
 
-	// Documentation interactive de l'API.
+	// Documentation  de l'API.
 	http.Handle("/swagger/", httpSwagger.WrapHandler)
 }
