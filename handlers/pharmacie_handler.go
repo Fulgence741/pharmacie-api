@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"pharmacie-api/pharmacie/models"
-	"pharmacie-api/pharmacie/services"
+	"pharmacie-api/models"
+	"pharmacie-api/services"
 	"pharmacie-api/utils"
 	"strconv"
 )

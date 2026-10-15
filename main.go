@@ -1,17 +1,12 @@
 package main
 
 import (
-	_ "pharmacie-api/docs"
-	"pharmacie-api/swagger"
-
 	"fmt"
 	"net/http"
 	"pharmacie-api/database"
-	gardeRoutes "pharmacie-api/garde/routes"
+	_ "pharmacie-api/docs"
 	"pharmacie-api/middleware"
-	pharmacieRoutes "pharmacie-api/pharmacie/routes"
-	pharmacieGardeRoutes "pharmacie-api/pharmacie_garde/routes"
-	UserRoutes "pharmacie-api/users/routes"
+	"pharmacie-api/routes"
 	"time"
 )
 
@@ -23,26 +18,19 @@ import (
 
 func main() {
 
-	// Connexion à la base de donnée (toujours en premier)
+	// Initialisation de la base avant d'accepter les requêtes.
 	database.ConnexionDB()
 
-	// Mon middleware rater limite
-	ipLimiter := middleware.NewRateLimiter(5, time.Minute)    // Limite par IP
-	userLimiter := middleware.NewRateLimiter(10, time.Minute) // Limite par ID
-	// Charger toutes les routes
-	pharmacieRoutes.GestionRoutesPharmacie(ipLimiter, userLimiter)           // Routes pharmacie
-	gardeRoutes.GestionRoutesGarde(ipLimiter, userLimiter)                   // Routes garde
-	pharmacieGardeRoutes.GestionRoutesPharmacieGarde(ipLimiter, userLimiter) // Routes pharmacie-garde
-	UserRoutes.GestionRoutesUsers(ipLimiter, userLimiter)                    // Routes User
+	// Les limites sont partagées par toutes les routes de l'application.
+	ipLimiter := middleware.NewRateLimiter(5, time.Minute)
+	userLimiter := middleware.NewRateLimiter(10, time.Minute)
 
-	// Middleware autour du routeur
-	swagger.SwaggerRoutes()
-	// Demarrage du serveur local (toujours en dernier)
+	// Toutes les routes API et Swagger sont déclarées dans le routeur central.
+	routes.GestionRoutes(ipLimiter, userLimiter)
+
 	err := http.ListenAndServe(":8080", nil)
-
 	if err != nil {
 		fmt.Println("Erreur du serveur", err)
 		return
 	}
-
 }

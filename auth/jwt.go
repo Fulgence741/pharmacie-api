@@ -2,7 +2,7 @@ package auth
 
 import (
 	"os"
-	"pharmacie-api/users/models"
+	"pharmacie-api/models"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

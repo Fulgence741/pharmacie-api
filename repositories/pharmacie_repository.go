@@ -3,7 +3,7 @@ package repositories
 import (
 	"fmt"
 	"pharmacie-api/database"
-	"pharmacie-api/pharmacie/models"
+	"pharmacie-api/models"
 )
 
 func AjouterPharmacieDB(newPharmacie models.Pharmacie) error {

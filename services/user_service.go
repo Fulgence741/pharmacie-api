@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	"pharmacie-api/users/models"
-	"pharmacie-api/users/repositories"
+	"pharmacie-api/models"
+	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
 	"strings"
 

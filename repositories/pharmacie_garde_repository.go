@@ -3,10 +3,10 @@ package repositories
 import (
 	"fmt"
 	"pharmacie-api/database"
-	"pharmacie-api/pharmacie_garde/models"
+	"pharmacie-api/models"
 )
 
-func AjouterDB(new models.PharmacieGarde) error {
+func AjouterPharmacieGardeDB(new models.PharmacieGarde) error {
 
 	// Requête pour ajouter une nouvelle garde en base de donnée
 	requete := `
@@ -19,7 +19,7 @@ func AjouterDB(new models.PharmacieGarde) error {
 	return err
 
 }
-func ListerByGardeDB(
+func ListerPharmacieGardeDB(
 	limit int,
 	offset int,
 	filter models.PharmacieGardeFliter) ([]models.PharmacieGardeA, error) {
@@ -85,7 +85,7 @@ func ListerByGardeDB(
 	return pharmacieGardes, nil
 }
 
-func SupprimerDb(id int) error {
+func SupprimerPharmacieGardeDB(id int) error {
 	requete := `
 				DELETE FROM pharmacie_garde 
 				WHERE id = $1

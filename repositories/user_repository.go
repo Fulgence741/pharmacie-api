@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"pharmacie-api/database"
-	"pharmacie-api/users/models"
+	"pharmacie-api/models"
 )
 
 func AjouterUserDB(newUser models.User) error {

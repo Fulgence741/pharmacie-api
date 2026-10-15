@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"pharmacie-api/pharmacie_garde/models"
-	"pharmacie-api/pharmacie_garde/services"
+	"pharmacie-api/models"
+	"pharmacie-api/services"
 	"pharmacie-api/utils"
 	"strconv"
 )
@@ -16,7 +16,7 @@ import (
 // @Success 201 {string} string "Oppération réussie"
 // @Failure 401 {string} string "Erreur lors de l'ajout"
 // @Router /pharmacie-garde [post]
-func Ajouter(response http.ResponseWriter, request *http.Request) {
+func AjouterPharmacieGarde(response http.ResponseWriter, request *http.Request) {
 
 	var pharmacieDeGarde models.PharmacieGarde
 	err := json.NewDecoder(request.Body).Decode(&pharmacieDeGarde)
@@ -24,7 +24,7 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 		http.Error(response, "Données invalides", http.StatusBadRequest)
 		return
 	}
-	err = services.AjouterService(pharmacieDeGarde)
+	err = services.AjouterPharmacieGardeService(pharmacieDeGarde)
 	if err != nil {
 
 		http.Error(response, "Erreur lors de l'ajout", http.StatusInternalServerError)
@@ -46,7 +46,7 @@ func Ajouter(response http.ResponseWriter, request *http.Request) {
 // @Success 201 {string} string ""
 // @Failure 400 {string} string ""
 // @Router /pharmacie-garde/list [post]
-func Lister(response http.ResponseWriter, request *http.Request) {
+func ListerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
 	nom := request.URL.Query().Get("nom")
 	filter := models.PharmacieGardeFliter{
 		Nom: nom,
@@ -54,7 +54,7 @@ func Lister(response http.ResponseWriter, request *http.Request) {
 
 	pagination := utils.GetPagination(request)
 
-	pharmacieGarde, err := services.ListerService(pagination, filter)
+	pharmacieGarde, err := services.ListerPharmacieGardeService(pagination, filter)
 
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
@@ -82,7 +82,7 @@ func Lister(response http.ResponseWriter, request *http.Request) {
 // @Success 201 {string} string "Oppération réussie"
 // @Failure 400 {string} string "Id invalide"
 // @Router /pharmacie-garde/{id}/delete [post]
-func Supprimer(response http.ResponseWriter, request *http.Request) {
+func SupprimerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
 	chemin := request.PathValue("id")
 	id, err := strconv.Atoi(chemin)
 	if err != nil {
@@ -90,7 +90,7 @@ func Supprimer(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = services.SupprimerService(id)
+	err = services.SupprimerPharmacieGardeService(id)
 	if err != nil {
 		http.Error(response, err.Error(), http.StatusInternalServerError)
 		return

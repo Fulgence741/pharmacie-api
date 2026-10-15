@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"pharmacie-api/auth"
-	"pharmacie-api/users/models"
-	"pharmacie-api/users/services"
+	"pharmacie-api/models"
+	"pharmacie-api/services"
 	"pharmacie-api/utils"
 	"strconv"
 )
