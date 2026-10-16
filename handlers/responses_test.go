@@ -7,19 +7,21 @@ import (
 	"testing"
 )
 
-func TestUserResponseDoesNotExposePassword(t *testing.T) {
-	response := userResponse(models.User{
+// NeExposePasMotDePasse vérifie que la réponse JSON
+// d'un utilisateur ne contient ni son mot de passe ni le hashing.
+func NeExposePasMotDePasse(t *testing.T) {
+	reponse := userResponse(models.User{
 		ID_USER:  7,
 		Nom:      "Alice",
 		Email:    "alice@example.com",
 		Password: "secret-hash",
 	})
 
-	encoded, err := json.Marshal(response)
-	if err != nil {
-		t.Fatalf("encodage du DTO utilisateur : %v", err)
+	jsonEncode, erreur := json.Marshal(reponse)
+	if erreur != nil {
+		t.Fatalf("encodage du DTO utilisateur : %v", erreur)
 	}
-	if strings.Contains(string(encoded), "password") || strings.Contains(string(encoded), "secret-hash") {
-		t.Fatalf("le DTO utilisateur expose le mot de passe : %s", encoded)
+	if strings.Contains(string(jsonEncode), "password") || strings.Contains(string(jsonEncode), "secret-hash") {
+		t.Fatalf("le DTO utilisateur expose le mot de passe : %s", jsonEncode)
 	}
 }

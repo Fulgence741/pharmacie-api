@@ -15,18 +15,20 @@ import (
 // @Success 201 {string} string "Pharmacie ajoutée avec succès"
 // @Failure 400 {string} string ""
 // @Router /pharmacie [post]
-func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
-	var input dto.PharmacieRequest
-	if err := decodeJSON(request, &input); err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// AjouterPharmacie crée une pharmacie à partir des informations reçues en JSON.
+func AjouterPharmacie(reponse http.ResponseWriter, requete *http.Request) {
+	var donnees dto.PharmacieRequest
+	if erreur := decodeJSON(requete, &donnees); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	pharmacie := pharmacieFromRequest(input)
-	if err := services.AjouterPharmacieServices(request.Context(), pharmacie); err != nil {
-		apierrors.WriteHTTP(response, err)
+	pharmacie := pharmacieFromRequest(donnees)
+	if erreur := services.AjouterPharmacieServices(requete.Context(), pharmacie); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusCreated, "Pharmacie ajouté avec succès")
+	writeJSON(reponse, http.StatusCreated, "Pharmacie ajouté avec succès")
 }
 
 // @Summary Lister pharmacie
@@ -35,19 +37,21 @@ func AjouterPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {array} models.Pharmacie
 // @Failure 400 {string} string ""
 // @Router /pharmacie/list [post]
-func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
-	query := request.URL.Query()
-	filter := models.PharmacieFilter{
-		Nom:    query.Get("nom"),
-		Ville:  query.Get("ville"),
-		Status: query.Get("status"),
+
+// ListerPharmacie renvoie les pharmacies selon les critères de recherche et la pagination.
+func ListerPharmacie(reponse http.ResponseWriter, requete *http.Request) {
+	parametres := requete.URL.Query()
+	filtre := models.PharmacieFilter{
+		Nom:    parametres.Get("nom"),
+		Ville:  parametres.Get("ville"),
+		Status: parametres.Get("status"),
 	}
-	pharmacies, err := services.ListerPharmacieServices(request.Context(), utils.GetPagination(request), filter)
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+	pharmacies, erreur := services.ListerPharmacieServices(requete.Context(), utils.GetPagination(requete), filtre)
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, pharmacieResponses(pharmacies))
+	writeJSON(reponse, http.StatusOK, pharmacieResponses(pharmacies))
 }
 
 // @Summary Afficher une pharmacie
@@ -56,18 +60,20 @@ func ListerPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {object} models.Pharmacie
 // @Failure 400 {string} string "Id invalide"
 // @Router /pharmacie/{id_pharmacie}/get [post]
-func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
-	id, err := pathID(request, "id_pharmacie")
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// AfficherPharmacie renvoie la pharmacie correspondant à l'identifiant du chemin.
+func AfficherPharmacie(reponse http.ResponseWriter, requete *http.Request) {
+	identifiant, erreur := pathID(requete, "id_pharmacie")
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	pharmacie, err := services.AfficherPharmacieServices(request.Context(), id)
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+	pharmacie, erreur := services.AfficherPharmacieServices(requete.Context(), identifiant)
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, pharmacieResponse(pharmacie))
+	writeJSON(reponse, http.StatusOK, pharmacieResponse(pharmacie))
 }
 
 // @Summary Modification d'une pharmacie
@@ -76,23 +82,25 @@ func AfficherPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {string} string "Pharmacie modifiée avec succès"
 // @Failure 400 {string} string "Id invalide"
 // @Router /pharmacie/{id_pharmacie}/put [post]
-func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
-	id, err := pathID(request, "id_pharmacie")
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// ModifierPharmacie met à jour la pharmacie désignée par l'identifiant du chemin.
+func ModifierPharmacie(reponse http.ResponseWriter, requete *http.Request) {
+	identifiant, erreur := pathID(requete, "id_pharmacie")
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
 
-	var input dto.PharmacieRequest
-	if err := decodeJSON(request, &input); err != nil {
-		apierrors.WriteHTTP(response, err)
+	var donnees dto.PharmacieRequest
+	if erreur := decodeJSON(requete, &donnees); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	if err := services.ModifierPharmacieService(request.Context(), id, pharmacieFromRequest(input)); err != nil {
-		apierrors.WriteHTTP(response, err)
+	if erreur := services.ModifierPharmacieService(requete.Context(), identifiant, pharmacieFromRequest(donnees)); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, "Pharmacie modifiée avec succès")
+	writeJSON(reponse, http.StatusOK, "Pharmacie modifiée avec succès")
 }
 
 // @Summary Suppression d'une pharmacie
@@ -101,25 +109,28 @@ func ModifierPharmacie(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {string} string "Pharmacie supprimée avec succès"
 // @Failure 400 {string} string "Id invalide"
 // @Router /pharmacie/{id_pharmacie}/delete [post]
-func SupprimerPharmacie(response http.ResponseWriter, request *http.Request) {
-	id, err := pathID(request, "id_pharmacie")
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// SupprimerPharmacie supprime la pharmacie désignée par l'identifiant du chemin.
+func SupprimerPharmacie(reponse http.ResponseWriter, requete *http.Request) {
+	identifiant, erreur := pathID(requete, "id_pharmacie")
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	if err := services.SupprimerPharmacieServices(request.Context(), id); err != nil {
-		apierrors.WriteHTTP(response, err)
+	if erreur := services.SupprimerPharmacieServices(requete.Context(), identifiant); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, "Pharmacie supprimée avec succès")
+	writeJSON(reponse, http.StatusOK, "Pharmacie supprimée avec succès")
 }
 
-func pharmacieFromRequest(input dto.PharmacieRequest) models.Pharmacie {
+// pharmacieFromRequest convertit les données reçues en modèle de pharmacie.
+func pharmacieFromRequest(donnees dto.PharmacieRequest) models.Pharmacie {
 	return models.Pharmacie{
-		Nom:       input.Nom,
-		Adresse:   input.Adresse,
-		Telephone: input.Telephone,
-		Email:     input.Email,
-		Ville:     input.Ville,
+		Nom:       donnees.Nom,
+		Adresse:   donnees.Adresse,
+		Telephone: donnees.Telephone,
+		Email:     donnees.Email,
+		Ville:     donnees.Ville,
 	}
 }

@@ -4,7 +4,7 @@ API HTTP en Go pour gérer les pharmacies, les gardes, les utilisateurs et les l
 
 ## Démarrer le projet
 
-Prérequis : Go 1.26 ou plus récent et une base PostgreSQL accessible.
+Technologies : Go 1.26 ou plus récent et une base PostgreSQL accessible.
 
 Créer un fichier `.env` à la racine avec les paramètres nécessaires :
 

@@ -15,24 +15,26 @@ import (
 // @Success 201 {string} string "Garde ajoutée avec succès"
 // @Failure 400 {string} string ""
 // @Router /garde [post]
-func AjouterGarde(response http.ResponseWriter, request *http.Request) {
-	var input dto.GardeRequest
-	if err := decodeJSON(request, &input); err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// AjouterGarde crée une garde à partir des informations reçues en JSON.
+func AjouterGarde(reponse http.ResponseWriter, requete *http.Request) {
+	var donnees dto.GardeRequest
+	if erreur := decodeJSON(requete, &donnees); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
 
 	garde := models.Garde{
-		Nom_Garde:  input.NomGarde,
-		DateGarde:  input.DateGarde,
-		HeureDebut: input.HeureDebut,
-		HeureFin:   input.HeureFin,
+		Nom_Garde:  donnees.NomGarde,
+		DateGarde:  donnees.DateGarde,
+		HeureDebut: donnees.HeureDebut,
+		HeureFin:   donnees.HeureFin,
 	}
-	if err := services.AjouterGardeService(request.Context(), garde); err != nil {
-		apierrors.WriteHTTP(response, err)
+	if erreur := services.AjouterGardeService(requete.Context(), garde); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusCreated, "Garde ajoutée avec succès")
+	writeJSON(reponse, http.StatusCreated, "Garde ajoutée avec succès")
 }
 
 // @Summary Liste de gardes
@@ -41,14 +43,16 @@ func AjouterGarde(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {array} models.Garde
 // @Failure 400 {string} string ""
 // @Router /garde/list [post]
-func ListerGardes(response http.ResponseWriter, request *http.Request) {
-	filter := models.GardeFilter{Nom_garde: request.URL.Query().Get("nom_garde")}
-	gardes, err := services.ListerGardeService(request.Context(), utils.GetPagination(request), filter)
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// ListerGardes renvoie les gardes correspondant aux filtres et à la pagination demandés.
+func ListerGardes(reponse http.ResponseWriter, requete *http.Request) {
+	filtre := models.GardeFilter{Nom_garde: requete.URL.Query().Get("nom_garde")}
+	gardes, erreur := services.ListerGardeService(requete.Context(), utils.GetPagination(requete), filtre)
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, gardeResponses(gardes))
+	writeJSON(reponse, http.StatusOK, gardeResponses(gardes))
 }
 
 // @Summary Affichage de garde
@@ -57,19 +61,21 @@ func ListerGardes(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {object} models.Garde
 // @Failure 400 {string} string "Id non valide"
 // @Router /garde/{id_garde}/get [post]
-func AfficherGarde(response http.ResponseWriter, request *http.Request) {
-	id, err := pathID(request, "id_garde")
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// AfficherGarde renvoie la garde correspondant à l'identifiant du chemin.
+func AfficherGarde(reponse http.ResponseWriter, requete *http.Request) {
+	identifiant, erreur := pathID(requete, "id_garde")
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
 
-	garde, err := services.ObtenirGardeService(request.Context(), id)
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+	garde, erreur := services.ObtenirGardeService(requete.Context(), identifiant)
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, gardeResponse(garde))
+	writeJSON(reponse, http.StatusOK, gardeResponse(garde))
 }
 
 // @Summary Modification de garde
@@ -78,29 +84,31 @@ func AfficherGarde(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {string} string "Garde modifiée avec succès"
 // @Failure 400 {string} string "Id invalide"
 // @Router /garde/{id_garde}/put [post]
-func ModifierGarde(response http.ResponseWriter, request *http.Request) {
-	id, err := pathID(request, "id_garde")
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// ModifierGarde met à jour la garde désignée par l'identifiant du chemin.
+func ModifierGarde(reponse http.ResponseWriter, requete *http.Request) {
+	identifiant, erreur := pathID(requete, "id_garde")
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
 
-	var input dto.GardeRequest
-	if err := decodeJSON(request, &input); err != nil {
-		apierrors.WriteHTTP(response, err)
+	var donnees dto.GardeRequest
+	if erreur := decodeJSON(requete, &donnees); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
 	garde := models.Garde{
-		Nom_Garde:  input.NomGarde,
-		DateGarde:  input.DateGarde,
-		HeureDebut: input.HeureDebut,
-		HeureFin:   input.HeureFin,
+		Nom_Garde:  donnees.NomGarde,
+		DateGarde:  donnees.DateGarde,
+		HeureDebut: donnees.HeureDebut,
+		HeureFin:   donnees.HeureFin,
 	}
-	if err := services.ModifierGardeService(request.Context(), id, garde); err != nil {
-		apierrors.WriteHTTP(response, err)
+	if erreur := services.ModifierGardeService(requete.Context(), identifiant, garde); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, "Garde modifiée avec succès")
+	writeJSON(reponse, http.StatusOK, "Garde modifiée avec succès")
 }
 
 // @Summary Suppression de garde
@@ -109,15 +117,17 @@ func ModifierGarde(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {string} string "Garde supprimée avec succès"
 // @Failure 400 {string} string "Id non valide"
 // @Router /garde/{id_garde}/delete [post]
-func SupprimerGarde(response http.ResponseWriter, request *http.Request) {
-	id, err := pathID(request, "id_garde")
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// SupprimerGarde supprime la garde désignée par l'identifiant du chemin.
+func SupprimerGarde(reponse http.ResponseWriter, requete *http.Request) {
+	identifiant, erreur := pathID(requete, "id_garde")
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	if err := services.SupprimerGardeService(request.Context(), id); err != nil {
-		apierrors.WriteHTTP(response, err)
+	if erreur := services.SupprimerGardeService(requete.Context(), identifiant); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, "Garde supprimée avec succès")
+	writeJSON(reponse, http.StatusOK, "Garde supprimée avec succès")
 }

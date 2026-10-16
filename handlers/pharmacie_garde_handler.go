@@ -15,21 +15,23 @@ import (
 // @Success 200 {string} string "Opération réussie"
 // @Failure 400 {string} string "Données invalides"
 // @Router /pharmacie-garde [post]
-func AjouterPharmacieGarde(response http.ResponseWriter, request *http.Request) {
-	var input dto.PharmacieGardeRequest
-	if err := decodeJSON(request, &input); err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// AjouterPharmacieGarde associe une pharmacie à une garde à partir de leurs identifiants.
+func AjouterPharmacieGarde(reponse http.ResponseWriter, requete *http.Request) {
+	var donnees dto.PharmacieGardeRequest
+	if erreur := decodeJSON(requete, &donnees); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
 	lien := models.PharmacieGarde{
-		PharmacieID: input.PharmacieID,
-		GardeID:     input.GardeID,
+		PharmacieID: donnees.PharmacieID,
+		GardeID:     donnees.GardeID,
 	}
-	if err := services.AjouterPharmacieGardeService(request.Context(), lien); err != nil {
-		apierrors.WriteHTTP(response, err)
+	if erreur := services.AjouterPharmacieGardeService(requete.Context(), lien); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, "Oppération reussie !")
+	writeJSON(reponse, http.StatusOK, "Oppération reussie !")
 }
 
 // @Summary Lister les pharmacies de garde
@@ -38,14 +40,16 @@ func AjouterPharmacieGarde(response http.ResponseWriter, request *http.Request) 
 // @Success 200 {array} models.PharmacieGardeA
 // @Failure 500 {string} string "Erreur interne"
 // @Router /pharmacie-garde/list [post]
-func ListerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
-	filter := models.PharmacieGardeFliter{Nom: request.URL.Query().Get("nom")}
-	result, err := services.ListerPharmacieGardeService(request.Context(), utils.GetPagination(request), filter)
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// ListerPharmacieGarde renvoie les associations correspondant au filtre et à la pagination.
+func ListerPharmacieGarde(reponse http.ResponseWriter, requete *http.Request) {
+	filtre := models.PharmacieGardeFliter{Nom: requete.URL.Query().Get("nom")}
+	resultat, erreur := services.ListerPharmacieGardeService(requete.Context(), utils.GetPagination(requete), filtre)
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, pharmacieGardeResponses(result))
+	writeJSON(reponse, http.StatusOK, pharmacieGardeResponses(resultat))
 }
 
 // @Summary Suppression de pharmacie-garde
@@ -54,15 +58,17 @@ func ListerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {string} string "Opération réussie"
 // @Failure 400 {string} string "Id invalide"
 // @Router /pharmacie-garde/{id}/delete [post]
-func SupprimerPharmacieGarde(response http.ResponseWriter, request *http.Request) {
-	id, err := pathID(request, "id")
-	if err != nil {
-		apierrors.WriteHTTP(response, err)
+
+// SupprimerPharmacieGarde supprime l'association, sans supprimer la pharmacie ni la garde.
+func SupprimerPharmacieGarde(reponse http.ResponseWriter, requete *http.Request) {
+	identifiant, erreur := pathID(requete, "id")
+	if erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	if err := services.SupprimerPharmacieGardeService(request.Context(), id); err != nil {
-		apierrors.WriteHTTP(response, err)
+	if erreur := services.SupprimerPharmacieGardeService(requete.Context(), identifiant); erreur != nil {
+		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
-	writeJSON(response, http.StatusOK, "Opération reussie!")
+	writeJSON(reponse, http.StatusOK, "Opération reussie!")
 }

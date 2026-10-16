@@ -5,22 +5,22 @@ import (
 	"pharmacie-api/models"
 )
 
-func userResponse(user models.User) dto.UserResponse {
+func userResponse(utilisateur models.User) dto.UserResponse {
 	return dto.UserResponse{
-		ID:       user.ID_USER,
-		Nom:      user.Nom,
-		Email:    user.Email,
-		Fonction: user.Fonction,
-		Role:     user.Role,
+		ID:       utilisateur.ID_USER,
+		Nom:      utilisateur.Nom,
+		Email:    utilisateur.Email,
+		Fonction: utilisateur.Fonction,
+		Role:     utilisateur.Role,
 	}
 }
 
-func userResponses(users []models.User) []dto.UserResponse {
-	result := make([]dto.UserResponse, 0, len(users))
-	for _, user := range users {
-		result = append(result, userResponse(user))
+func userResponses(utilisateurs []models.User) []dto.UserResponse {
+	resultat := make([]dto.UserResponse, 0, len(utilisateurs))
+	for _, utilisateur := range utilisateurs {
+		resultat = append(resultat, userResponse(utilisateur))
 	}
-	return result
+	return resultat
 }
 
 func pharmacieResponse(pharmacie models.Pharmacie) dto.PharmacieResponse {
@@ -36,11 +36,11 @@ func pharmacieResponse(pharmacie models.Pharmacie) dto.PharmacieResponse {
 }
 
 func pharmacieResponses(pharmacies []models.Pharmacie) []dto.PharmacieResponse {
-	result := make([]dto.PharmacieResponse, 0, len(pharmacies))
+	resultat := make([]dto.PharmacieResponse, 0, len(pharmacies))
 	for _, pharmacie := range pharmacies {
-		result = append(result, pharmacieResponse(pharmacie))
+		resultat = append(resultat, pharmacieResponse(pharmacie))
 	}
-	return result
+	return resultat
 }
 
 func gardeResponse(garde models.Garde) dto.GardeResponse {
@@ -54,24 +54,24 @@ func gardeResponse(garde models.Garde) dto.GardeResponse {
 }
 
 func gardeResponses(gardes []models.Garde) []dto.GardeResponse {
-	result := make([]dto.GardeResponse, 0, len(gardes))
+	resultat := make([]dto.GardeResponse, 0, len(gardes))
 	for _, garde := range gardes {
-		result = append(result, gardeResponse(garde))
+		resultat = append(resultat, gardeResponse(garde))
 	}
-	return result
+	return resultat
 }
 
-func pharmacieGardeResponses(pharmacieGardes []models.PharmacieGardeA) []dto.PharmacieGardeResponse {
-	result := make([]dto.PharmacieGardeResponse, 0, len(pharmacieGardes))
-	for _, pharmacieGarde := range pharmacieGardes {
-		result = append(result, dto.PharmacieGardeResponse{
-			Nom:        pharmacieGarde.Nom,
-			Adresse:    pharmacieGarde.Adresse,
-			NomGarde:   pharmacieGarde.NomGarde,
-			DateGarde:  pharmacieGarde.DateGarde,
-			HeureDebut: pharmacieGarde.HeureDebut,
-			HeureFin:   pharmacieGarde.HeureFin,
+func pharmacieGardeResponses(pharmaciesDeGarde []models.PharmacieGardeA) []dto.PharmacieGardeResponse {
+	resultat := make([]dto.PharmacieGardeResponse, 0, len(pharmaciesDeGarde))
+	for _, pharmacieDeGarde := range pharmaciesDeGarde {
+		resultat = append(resultat, dto.PharmacieGardeResponse{
+			Nom:        pharmacieDeGarde.Nom,
+			Adresse:    pharmacieDeGarde.Adresse,
+			NomGarde:   pharmacieDeGarde.NomGarde,
+			DateGarde:  pharmacieDeGarde.DateGarde,
+			HeureDebut: pharmacieDeGarde.HeureDebut,
+			HeureFin:   pharmacieDeGarde.HeureFin,
 		})
 	}
-	return result
+	return resultat
 }
