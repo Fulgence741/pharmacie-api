@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"pharmacie-api/config"
 	"pharmacie-api/database"
 	_ "pharmacie-api/docs"
 	"pharmacie-api/middleware"
 	"pharmacie-api/routes"
 	"time"
-
-	
 )
 
 // @title Pharmacie API
@@ -22,14 +21,17 @@ import (
 func main() {
 
 	// Initialisation de la base avant d'accepter les requêtes.
-	
 
-	config := database.LoadConfig()
-	err := database.ConnexionDB(config)
+	cfg := config.LoadConfig()
+	err := database.ConnexionDB(cfg)
 
 	if err != nil {
 		log.Fatal("Erreur de la connexion à postgreSQL:", err)
 	}
+
+	// Initiatlisation de Redis
+
+	config.InitRedis()
 
 	// Les limites sont partagées par toutes les routes de l'application.
 	ipLimiter := middleware.NewRateLimiter(5, time.Minute)

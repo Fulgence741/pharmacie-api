@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"pharmacie-api/config"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -10,7 +11,7 @@ import (
 
 var DB *pgxpool.Pool
 
-func ConnexionDB(config *Config) error {
+func ConnexionDB(config *config.Config) error {
 
 	// construction du dsn pour créer une chaîne de caractère utilisé pour la connexion
 	dsn := fmt.Sprintf(
