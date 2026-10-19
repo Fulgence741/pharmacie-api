@@ -27,6 +27,8 @@ func main() {
 
 	if err != nil {
 		log.Fatal("Erreur de la connexion à postgreSQL:", err)
+	} else {
+		log.Println("Connexion reussie à postgreSQL")
 	}
 
 	// Initiatlisation de Redis
