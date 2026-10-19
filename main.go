@@ -27,6 +27,7 @@ func main() {
 
 	if err != nil {
 		log.Fatal("Erreur de la connexion à postgreSQL:", err)
+		return
 	} else {
 		log.Println("Connexion reussie à postgreSQL")
 	}

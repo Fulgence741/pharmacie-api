@@ -2,10 +2,15 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"pharmacie-api/cache"
 	"pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
+	"strings"
+	"time"
 )
 
 func AjouterPharmacieServices(ctx context.Context, pharmacie models.Pharmacie) error {
@@ -36,13 +41,46 @@ func ListerPharmacieServices(ctx context.Context,
 	pagination utils.Pagination,
 	filter models.PharmacieFilter) ([]models.Pharmacie, error) {
 
-	pharmacie, err := repositories.ListerPharmacieDB(ctx,
+	cachekey := fmt.Sprintf(
+		"cache:pharmacie:nom:%q:limit:%d:ofsset:%d",
+		strings.ToLower(strings.TrimSpace(filter.Nom)),
+		pagination.Limit,
+		pagination.Offset,
+	)
+
+	var pharmacie []models.Pharmacie
+
+	found, err := cache.GetJSON(ctx, cachekey, &pharmacie)
+
+	if err == nil && found {
+		log.Println("CACHE HIT: données récupérées depuis Redis")
+		return pharmacie, nil
+	}
+	if err != nil {
+		log.Printf("Erreeur de lecture du cache Redis: %v", err)
+	}
+
+	log.Println("CACHE MISS : récupération des données depuis PostgreSQL")
+
+	pharmacie, err = repositories.ListerPharmacieDB(
+		ctx,
 		pagination.Limit,
 		pagination.Offset,
 		filter,
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	err = cache.SetJSON(
+		ctx,
+		cachekey,
+		pharmacie,
+		5*time.Minute,
+	)
+
+	if err != nil {
+		log.Println("Erreur d'enregistrement du cache Redis: %v", err)
 	}
 
 	return pharmacie, nil

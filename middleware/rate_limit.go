@@ -1,139 +1,180 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
+	"pharmacie-api/config"
 	apierrors "pharmacie-api/errors"
-	"sync"
 	"time"
 )
 
-// Objet qui représente représente l'état de n'importe quelle clé.
-
-type ClientState struct {
-	Count int       // Stock le nombre de requete effectué
-	Start time.Time // stock le moment ou la fenêtre actuelle de limitation commence
-}
-
 // Objet qui rassemble toutes les informations et outils nécessaires pour appliquer une limitation de requêtes.
-
 type RateLimiter struct {
-	limit   int                    // le nombre maximum de requête
-	window  time.Duration          // la durée pendant laquelle on compte les requêtes
-	clients map[string]ClientState //l'état associé à une clé qui identifie le client.
-	mutex   sync.Mutex             // Vérrou pour ne pas que deux exécutions du concurents du code modifient la map en même temps
+	limit  int           // le nombre maximum de requête
+	window time.Duration // la durée pendant laquelle on compte les requêtes
 }
 
 // Construction d'un rate limit
 func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 	return &RateLimiter{
-		limit:   limit,
-		window:  window,
-		clients: make(map[string]ClientState),
+		limit:  limit,
+		window: window,
 	}
 }
 
-func (limiter *RateLimiter) Allow(key string) bool {
-	limiter.mutex.Lock()         // vérouille l'opération pendant l'execution par une clé
-	defer limiter.mutex.Unlock() // defer exécute le unclock à la fin de la fonction
+// Vérifier si une requete est autorisée
 
-	now := time.Now() // Récupération de l'heure actuelle et la met dans la variable now
+func (limiter *RateLimiter) Allow(
+	ctx context.Context, // Context de la requete
+	key string, // Clé qui identifie le client (ip ou id)
+) (bool, error) {
 
-	state, exists := limiter.clients[key] // Donne-moi l'état associé à cette clé et dis-moi si cette clé existe.
+	// permet d'incrémenter le compteur et de definir son expiration
 
-	if !exists { // Si la clé n'existe pas
+	const scrypt = `
+local current = redis.call("INCR", KEYS[1])
+if current == 1 then 
+				redis.call("PEXPIRE",
+				 KEYS[1], ARGV[1])
+				end 
+				return current
+`
 
-		// Dans ma map, à cette clé, enregistre ce ClientState
-		limiter.clients[key] = ClientState{
-			Count: 1,
-			Start: now,
-		}
-		return true // Oui
+	// KEYS = clé à incrémenter et ARVG = durée avant expiration
+
+	rediskey := "rate_limit:" + key // la clé redis devient rate_limit: ip : + key
+
+	windowMilliseconds := limiter.window.Milliseconds() // On convertis la durée de la fenêtre en miliseconde
+
+	count, err := config.RedisClient.Eval(
+		ctx,
+		scrypt,
+		[]string{rediskey},
+		windowMilliseconds,
+	).Int64()
+
+	// Vérifier si redis a rencontré une erreur
+
+	if err != nil {
+		return false, fmt.Errorf(
+			"erreur redis pendant le rate limitting : %w",
+			err,
+		)
+	}
+	// Vérifier si la limite est dépassée
+	if count > int64(limiter.limit) {
+		return false, nil
 	}
 
-	// La fenêtre est terminée
-	if now.Sub(state.Start) >= limiter.window { // vérifier entre les deux temps  , et voir s'il est supérieur ou égale à la limite autorisée
-		limiter.clients[key] = ClientState{
-			Count: 1,
-			Start: now, // si c'est vrai alors on réinitialise et on commence une nouvelle fenêtre de requette
-		}
-		return true
-	}
-
-	// Limite atteinte
-	if state.Count >= limiter.limit { //  on vérifie la limite
-		return false // la requête est refusée
-	}
-
-	// Incrémentation du compteur
-	state.Count++                // sinon on incrémente
-	limiter.clients[key] = state // on remet l'état qui a été modifié dans la map
-
-	return true // la requête est autorisée
+	// Autoriser la requête
+	return true, nil
 }
 
-// Fonction qui sert à supprimer les clients qui ont terminés leur fenêtre
-func (limiter *RateLimiter) Cleanup() {
-	limiter.mutex.Lock()         // Verouille
-	defer limiter.mutex.Unlock() // Deverouille à la fin de la fonction
+// RateLimit applique une limitation par utilisateur ou par IP.
 
-	now := time.Now() // prends le temps de maintenant
-
-	for key, state := range limiter.clients { // entre dans la map et parcours là
-		if now.Sub(state.Start) >= limiter.window { // si la durée écoulée depuis le début de sa fenêtre est supérieure ou égale à la durée de la fenêtre
-			delete(limiter.clients, key) // supprime cette clé
-		}
-	}
-}
-
-// Le middleware pour implémenter les deux, Limite par IP et limite par ID
 func RateLimit(
-	ipLimiter *RateLimiter, // controle les ip
-	userLimiter *RateLimiter, // controle les utilisateurs authentifiés
+	ipLimiter *RateLimiter,
+	userLimiter *RateLimiter,
 ) func(http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 
-		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		return http.HandlerFunc(func(
+			response http.ResponseWriter,
+			request *http.Request,
+		) {
 
-			// 2. Rate limit par user ID
+			ctx := request.Context()
 
-			userID, ok := request.Context().Value(userIDKey).(int)
+			// 1. Limitation par utilisateur authentifié.
+
+			userID, ok := ctx.Value(userIDKey).(int)
 
 			if ok && userLimiter != nil {
 
-				// L'utilisateur est authentifié.
-				// On utilise donc son User ID comme clé.
-
+				// On construit une clé unique pour cet ID
 				userKey := fmt.Sprintf("user:%d", userID)
 
-				if !userLimiter.Allow(userKey) {
-					apierrors.WriteHTTP(response, apierrors.TooManyRequests("Trop de tentatives"))
+				// On vérifie si la limite n'est pas dépassée pour continuer les requêtes
+
+				allowed, err := userLimiter.Allow(ctx, userKey)
+				// vérifie une erreur interne du serveur
+
+				if err != nil {
+					http.Error(
+						response,
+						"Erreur interne du serveur",
+						http.StatusInternalServerError,
+					)
 					return
 				}
 
-				// La limite utilisateur est respectée.
+				// Refuser la requête si limite dépassée
+
+				if !allowed {
+					apierrors.WriteHTTP(
+						response,
+						apierrors.TooManyRequests(
+							"Trop de tentatives",
+						),
+					)
+					return
+				}
+
+				// Passer la requête au handler suivant
+
 				next.ServeHTTP(response, request)
 				return
 			}
 
-			// 2. Rate limit par IP
+			// 2. Limitation par adresse IP.
+
+			if ipLimiter == nil {
+				next.ServeHTTP(response, request)
+				return
+			}
+
 			ip, _, err := net.SplitHostPort(request.RemoteAddr)
 
 			if err != nil {
-				apierrors.WriteHTTP(response, apierrors.InvalidRequest("Adresse IP invalide"))
+				apierrors.WriteHTTP(
+					response,
+					apierrors.InvalidRequest(
+						"Adresse IP invalide",
+					),
+				)
+				return
+			}
+			// On constuit la clé redis associée à cette adresse ip
+			ipKey := "ip:" + ip
+
+			// On vérifie si la limitee n'est pas depassée
+			allowed, err := ipLimiter.Allow(ctx, ipKey)
+			// Vérifie une éventuelle erreur interne
+			if err != nil {
+				http.Error(
+					response,
+					"Erreur interne du serveur",
+					http.StatusInternalServerError,
+				)
 				return
 			}
 
-			// On utilise l'IP comme clé.
+			// Si l'ip a depassé sa limite on refuse la requete
 
-			if !ipLimiter.Allow("ip:" + ip) {
-				apierrors.WriteHTTP(response, apierrors.TooManyRequests("Trop de tentatives"))
+			if !allowed {
+				apierrors.WriteHTTP(
+					response,
+					apierrors.TooManyRequests(
+						"Trop de tentatives",
+					),
+				)
 				return
 			}
 
-			// Si tout se passe bien on passe la main au handler pour qu'il puisse être exécuté
+			// On transmet la requête au handler suivant
 			next.ServeHTTP(response, request)
 		})
 	}

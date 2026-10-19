@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	stderrors "errors"
+	"fmt"
+	"log"
+	"pharmacie-api/cache"
 	"pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
@@ -51,7 +54,30 @@ func AjouterUserService(ctx context.Context, user models.User) error {
 func ListerUserService(ctx context.Context,
 	pagination utils.Pagination,
 	filter models.UserFilter) ([]models.User, error) {
-	user, err := repositories.ListerUserDB(ctx, pagination.Limit,
+
+	// Gestion de cache
+
+	cacheKey := fmt.Sprint(
+		"cache:user:nom:%q:limit:%d:offset:%d",
+		strings.ToLower(strings.TrimSpace(filter.Nom)),
+		pagination.Limit,
+		pagination.Offset,
+	)
+
+	var user []models.User
+
+	found, err := cache.GetJSON(ctx, cacheKey, &user)
+	if err != nil && found {
+		log.Println("CACHE HIT : données récupérées depuis Redis")
+		return user, nil
+	}
+
+	if err != nil {
+		log.Printf("Erreur de lecture du cache Redis")
+	}
+
+	log.Println("CACHE MISS : récupération des données dans postgreSQL")
+	user, err = repositories.ListerUserDB(ctx, pagination.Limit,
 		pagination.Offset,
 		filter)
 	if err != nil {

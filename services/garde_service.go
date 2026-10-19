@@ -2,10 +2,14 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"pharmacie-api/cache"
 	"pharmacie-api/errors"
 	"pharmacie-api/models"
 	"pharmacie-api/repositories"
 	"pharmacie-api/utils"
+	"strings"
 )
 
 func AjouterGardeService(ctx context.Context, garde models.Garde) error {
@@ -29,7 +33,30 @@ func AjouterGardeService(ctx context.Context, garde models.Garde) error {
 func ListerGardeService(ctx context.Context, pagination utils.Pagination,
 	filter models.GardeFilter) ([]models.Garde, error) {
 
-	garde, err := repositories.ListerGardesDB(ctx,
+	// Gestion de cache
+	cacheKey := fmt.Sprint(
+		"cache:garde:nom:%q:limit:%d:offset:%d",
+		strings.ToLower(strings.TrimSpace(filter.Nom_garde)),
+		pagination.Limit,
+		pagination.Offset,
+	)
+
+	var garde []models.Garde
+
+	found, err := cache.GetJSON(ctx, cacheKey, &garde)
+
+	if err == nil && found {
+		log.Println("CACHE HIT : données récupérées depuis Redis")
+		return garde, nil
+	}
+
+	if err != nil {
+		log.Printf("Erreur de lecture du cache Redis : %v", err)
+	}
+	log.Println("CACHE MISS : recuperation des données depuis postgreSQL")
+
+	// Appel du repository
+	garde, err = repositories.ListerGardesDB(ctx,
 		pagination.Limit,
 		pagination.Offset,
 		filter,
