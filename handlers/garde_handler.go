@@ -16,7 +16,7 @@ import (
 // @Failure 400 {string} string ""
 // @Router /garde [post]
 
-// AjouterGarde crée une garde à partir des informations reçues en JSON.
+// AjouterGarde crée une garde à partir des informations reçues en JSON
 func AjouterGarde(reponse http.ResponseWriter, requete *http.Request) {
 	var donnees dto.GardeRequest
 	if erreur := decodeJSON(requete, &donnees); erreur != nil {
@@ -44,7 +44,7 @@ func AjouterGarde(reponse http.ResponseWriter, requete *http.Request) {
 // @Failure 400 {string} string ""
 // @Router /garde/list [post]
 
-// ListerGardes renvoie les gardes correspondant aux filtres et à la pagination demandés.
+// ListerGardes renvoie les gardes correspondant aux filtres et à la pagination demandés
 func ListerGardes(reponse http.ResponseWriter, requete *http.Request) {
 	filtre := models.GardeFilter{Nom_garde: requete.URL.Query().Get("nom_garde")}
 	gardes, erreur := services.ListerGardeService(requete.Context(), utils.GetPagination(requete), filtre)
@@ -62,7 +62,7 @@ func ListerGardes(reponse http.ResponseWriter, requete *http.Request) {
 // @Failure 400 {string} string "Id non valide"
 // @Router /garde/{id_garde}/get [post]
 
-// AfficherGarde renvoie la garde correspondant à l'identifiant du chemin.
+// AfficherGarde renvoie la garde correspondant à l'identifiant du chemin
 func AfficherGarde(reponse http.ResponseWriter, requete *http.Request) {
 	identifiant, erreur := pathID(requete, "id_garde")
 	if erreur != nil {
@@ -85,7 +85,7 @@ func AfficherGarde(reponse http.ResponseWriter, requete *http.Request) {
 // @Failure 400 {string} string "Id invalide"
 // @Router /garde/{id_garde}/put [post]
 
-// ModifierGarde met à jour la garde désignée par l'identifiant du chemin.
+// ModifierGarde met à jour la garde désignée par l'identifiant du chemin
 func ModifierGarde(reponse http.ResponseWriter, requete *http.Request) {
 	identifiant, erreur := pathID(requete, "id_garde")
 	if erreur != nil {
@@ -118,7 +118,7 @@ func ModifierGarde(reponse http.ResponseWriter, requete *http.Request) {
 // @Failure 400 {string} string "Id non valide"
 // @Router /garde/{id_garde}/delete [post]
 
-// SupprimerGarde supprime la garde désignée par l'identifiant du chemin.
+// SupprimerGarde supprime la garde désignée par l'identifiant du chemin
 func SupprimerGarde(reponse http.ResponseWriter, requete *http.Request) {
 	identifiant, erreur := pathID(requete, "id_garde")
 	if erreur != nil {
