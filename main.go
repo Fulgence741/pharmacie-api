@@ -1,15 +1,8 @@
 package main
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"os/signal"
-	"strings"
-	"syscall"
 	"time"
 
 	"pharmacie-api/config"
@@ -26,34 +19,33 @@ import (
 // @host localhost:8080
 // @BasePath /
 
-// Main demarre l'API, initialise les composants nécessaires et gère le cycle de vie du serveur HTTP.
 func main() {
-	if err := run(); err != nil {
+	if err := startApplication(); err != nil {
 		log.Fatalf("Erreur au démarrage ou à l'arrêt de l'API: %v", err)
 	}
 }
 
-// run initialise les composants nécessaires et démarre le serveur HTTP.
-
-// Il gère également l'arrêt du serveur en cas d'interruption ou de signal de terminaison.
-func run() (runErr error) {
+// startApplication prépare les services, puis démarre l'API.
+func startApplication() error {
+	// 1. Lire la configuration.
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return err
 	}
 
-	// Initialisation du logger pour écrire les logs dans un fichier spécifié par la configuration
+	// 2. Activer les logs dans le terminal et dans le fichier configuré.
 	logFile, err := logging.InitLogger(cfg.LogFile)
 	if err != nil {
-		return fmt.Errorf("initialisation des logs: %w", err)
+		return err
 	}
 	defer func() {
-		log.SetOutput(os.Stdout) // réinitialisation de la sortie du logger vers stdout avant de fermer le fichier de log
+		log.SetOutput(os.Stdout)
 		if err := logFile.Close(); err != nil {
-			runErr = errors.Join(runErr, fmt.Errorf("fermeture du fichier de log: %w", err))
+			log.Printf("Erreur à la fermeture du fichier de log: %v", err)
 		}
 	}()
 
+	// 3. Connecter les services nécessaires à l'API.
 	if err := database.ConnexionDB(cfg); err != nil {
 		return err
 	}
@@ -65,44 +57,15 @@ func run() (runErr error) {
 	}
 	defer func() {
 		if err := config.CloseRedis(); err != nil {
-			runErr = errors.Join(runErr, err)
+			log.Printf("Erreur à la fermeture de Redis: %v", err)
 		}
 	}()
 	log.Printf("Connexion Redis établie: adresse=%s", cfg.RedisAddr)
 
+	// 4. Préparer les routes et lancer le serveur HTTP.
 	ipLimiter := middleware.NewRateLimiter(5, time.Minute)
 	userLimiter := middleware.NewRateLimiter(10, time.Minute)
 	handler := routes.GestionRoutes(ipLimiter, userLimiter)
 
-	port := strings.TrimPrefix(cfg.ServerPort, ":")
-	server := &http.Server{
-		Addr:              ":" + port,
-		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
-
-	serverErrors := make(chan error, 1)
-	go func() {
-		log.Printf("Serveur HTTP démarré: adresse=%s", server.Addr)
-		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			serverErrors <- fmt.Errorf("serveur HTTP: %w", err)
-		} else {
-			serverErrors <- nil
-		}
-	}()
-
-	select {
-	case err := <-serverErrors:
-		return err
-	case <-ctx.Done():
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if err := server.Shutdown(shutdownCtx); err != nil {
-			return fmt.Errorf("arrêt du serveur HTTP: %w", err)
-		}
-		return <-serverErrors
-	}
+	return startHTTPServer(cfg.ServerPort, handler)
 }

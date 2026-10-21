@@ -47,36 +47,37 @@ docker compose up --build
 
 Les routes métier utilisent actuellement `POST`.
 
-| Ressource | Routes |
-| --- | --- |
-| Pharmacies | `/pharmacie`, `/pharmacie/list`, `/pharmacie/{id_pharmacie}/get`, `/pharmacie/{id_pharmacie}/put`, `/pharmacie/{id_pharmacie}/delete` |
-| Gardes | `/garde`, `/garde/list`, `/garde/{id_garde}/get`, `/garde/{id_garde}/put`, `/garde/{id_garde}/delete` |
-| Pharmacies de garde | `/pharmacie-garde`, `/pharmacie-garde/list`, `/pharmacie-garde/{id}/delete` |
-| Utilisateurs | `/user`, `/user/list`, `/user/{id}/get`, `/user/{id}/delete`, `/user/{id}/role/patch` |
-| Authentification | `/login` |
+Pharmacies : `/pharmacie`, `/pharmacie/list`, `/pharmacie/{id}/get`, `/pharmacie/{id}/put`, `/pharmacie/{id}/delete`
+
+Gardes : `/garde`, `/garde/list`, `/garde/{id}/get`, `/garde/{id}/put`, `/garde/{id}/delete`
+
+Pharmacies de garde : `/pharmacie-garde`, `/pharmacie-garde/list`, `/pharmacie-garde/{id}/delete`
+
+Utilisateurs : `/user`, `/user/list`, `/user/{id}/get`, `/user/{id}/delete`, `/user/{id}/role/patch`
+
+Authentification : `/login`
 
 Les routes protégées attendent un jeton JWT dans l'en-tête `Authorization`, au format `Bearer <jeton>`. Les routes de liste prennent en charge la pagination (`page`, `limit`) et les filtres définis par les handlers.
 
 ## Organisation du code
 
-```text
-.
-├── auth/          # JWT
-├── cache/         # Cache Redis
-├── config/        # Configuration et client Redis
-├── database/      # Connexion PostgreSQL
-├── docs/          # Documentation Swagger
-├── dto/           # Formats JSON d'entrée et de sortie
-├── errors/        # Erreurs HTTP et métier
-├── handlers/      # Adaptation HTTP
-├── logging/       # Initialisation des logs
-├── middleware/    # Authentification, rôles, limites et logs HTTP
-├── models/        # Modèles métier
-├── repositories/  # Accès aux données PostgreSQL
-├── routes/        # Déclaration des endpoints
-├── services/      # Validation et règles métier
-└── utils/         # Utilitaires partagés, dont la pagination
-```
+auth : création et vérification des jetons JWT
+cache : gestion du cache Redis
+config : lecture de la configuration et connexion à Redis
+database : connexion à PostgreSQL
+docs : documentation Swagger
+dto : formats des données reçues et renvoyées par l'API
+errors : gestion des erreurs HTTP et métier
+handlers : traitement des requêtes HTTP
+logging : configuration des logs
+middleware : authentification, rôles, limitation des requêtes et journalisation
+models : structures des données métier
+repositories : accès aux données PostgreSQL
+routes : déclaration des routes de l'API
+services : validation et règles métier
+utils : fonctions partagées, notamment la pagination
+main.go : démarrage de l'application et connexion aux services
+server.go : écoute des requêtes et arrêt propre du serveur
 
 Les handlers transmettent le contexte HTTP aux services puis aux repositories afin que l'annulation des requêtes soit respectée. Les erreurs de connexion PostgreSQL ou Redis empêchent le serveur de démarrer. À l'arrêt, le serveur se ferme proprement et libère ses connexions.
 
