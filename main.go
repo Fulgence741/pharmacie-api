@@ -26,24 +26,29 @@ import (
 // @host localhost:8080
 // @BasePath /
 
+// Main demarre l'API, initialise les composants nécessaires et gère le cycle de vie du serveur HTTP.
 func main() {
 	if err := run(); err != nil {
 		log.Fatalf("Erreur au démarrage ou à l'arrêt de l'API: %v", err)
 	}
 }
 
+// run initialise les composants nécessaires et démarre le serveur HTTP.
+
+// Il gère également l'arrêt du serveur en cas d'interruption ou de signal de terminaison.
 func run() (runErr error) {
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		return err
 	}
 
+	// Initialisation du logger pour écrire les logs dans un fichier spécifié par la configuration
 	logFile, err := logging.InitLogger(cfg.LogFile)
 	if err != nil {
 		return fmt.Errorf("initialisation des logs: %w", err)
 	}
 	defer func() {
-		log.SetOutput(os.Stdout)
+		log.SetOutput(os.Stdout) // réinitialisation de la sortie du logger vers stdout avant de fermer le fichier de log
 		if err := logFile.Close(); err != nil {
 			runErr = errors.Join(runErr, fmt.Errorf("fermeture du fichier de log: %w", err))
 		}

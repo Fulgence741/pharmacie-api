@@ -90,16 +90,16 @@ func Auth(next http.Handler) http.Handler {
 
 		// Ajout du rôle et de l'identifiant de l'utilisateur au contexte de la requête
 		ctx := context.WithValue(
-			request.Context(),
-			userRoleKey,
-			role,
+			request.Context(), // Récupération du contexte de la requête HTTP
+			userRoleKey,       // Clé pour le rôle de l'utilisateur dans le contexte
+			role,              // Valeur du rôle de l'utilisateur extrait des claims du token JWT
 		)
 		// Ajout de l'identifiant de l'utilisateur au contexte de la requête
 
 		ctx = context.WithValue(
-			ctx,
-			userIDKey,
-			userID,
+			ctx,       // Contexte actuel contenant le rôle de l'utilisateur
+			userIDKey, // Clé pour l'identifiant de l'utilisateur dans le contexte
+			userID,    // Valeur de l'identifiant de l'utilisateur extrait des claims du token JWT
 		)
 		// Mise à jour de la requête avec le nouveau contexte contenant le rôle et l'identifiant de l'utilisateur
 		request = request.WithContext(ctx)

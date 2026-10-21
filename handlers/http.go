@@ -12,6 +12,8 @@ import (
 // decodeJSON lit le corps de la requête et convertit son contenu JSON dans la cible fournie.
 func decodeJSON(requete *http.Request, cible any) error {
 	if erreur := json.NewDecoder(requete.Body).Decode(cible); erreur != nil {
+		// Si une erreur se produit lors de la lecture ou de la conversion du JSON, on renvoie une erreur d'API indiquant que les données sont invalides
+		log.Printf("Erreur lors de la conversion du JSON: erreur=%v", erreur)
 		return apierrors.InvalidRequest("Données invalides")
 	}
 	return nil

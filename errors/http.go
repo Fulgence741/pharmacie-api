@@ -49,20 +49,23 @@ func WriteHTTP(response http.ResponseWriter, err error) {
 		return
 	}
 
+	// Définition des valeurs par défaut pour le code HTTP et le message d'erreur
 	statusCode := http.StatusInternalServerError
 	message := ErrInternalServer.Error()
 
+	// Vérification du type d'erreur pour déterminer le code HTTP et le message appropriés
 	var httpErr *HTTPError
-	if stderrors.As(err, &httpErr) {
-		statusCode = httpErr.StatusCode
-		message = httpErr.Message
-	} else if stderrors.Is(err, sql.ErrNoRows) {
-		statusCode = http.StatusNotFound
-		message = ErrNotFound.Error()
+	if stderrors.As(err, &httpErr) { // Vérification si l'erreur est de type HTTPError
+		statusCode = httpErr.StatusCode // Si c'est le cas, on utilise le code HTTP et le message de l'erreur HTTPError
+		message = httpErr.Message       // On utilise le message de l'erreur HTTPError
+	} else if stderrors.Is(err, sql.ErrNoRows) { // Vérification si l'erreur est une erreur de type sql.ErrNoRows (pas de résultats trouvés)
+		statusCode = http.StatusNotFound // Si c'est le cas, on renvoie un code HTTP 404 Not Found
+		message = ErrNotFound.Error()    // On utilise le message de l'erreur ErrNotFound
 	} else {
 		log.Printf("Erreur interne API: erreur=%v", err)
 	}
 
+	// Écriture de la réponse HTTP avec le code et le message d'erreur appropriés
 	response.Header().Set("Content-Type", "application/json")
 	response.WriteHeader(statusCode)
 	if encodeErr := json.NewEncoder(response).Encode(map[string]string{
