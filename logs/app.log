@@ -1,0 +1,8 @@
+package logs
+2026/10/21 12:52:03 main.go:35: Démarrage du serveur...
+2026/10/21 12:52:03 main.go:46: Connexion reussie à postgreSQL
+2026/10/21 12:52:03 redis.go:24: Connexion reussie à REDIS
+2026/10/21 12:53:06 main.go:42: Connexion reussie à postgreSQL
+2026/10/21 12:53:06 redis.go:24: Connexion reussie à REDIS
+2026/10/21 12:53:14 pharmacie_garde_service.go:57: CACHE MISS : récupération des données dans PostgreSQL
+2026/10/21 12:53:14 logg.go:48: POST /pharmacie-garde/list 200 10.81645ms

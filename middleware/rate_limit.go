@@ -10,52 +10,52 @@ import (
 	"time"
 )
 
-// Objet qui rassemble toutes les informations et outils nécessaires pour appliquer une limitation de requêtes.
+// RateLimiter est une structure qui gère la limitation du nombre de requêtes par utilisateur ou par IP.
 type RateLimiter struct {
-	limit  int           // le nombre maximum de requête
-	window time.Duration // la durée pendant laquelle on compte les requêtes
+	limit  int           // le nombre maximum de requêtes autorisées dans la fenêtre de temps
+	window time.Duration // la durée de la fenêtre de temps pour la limitation
 }
 
-// Construction d'un rate limit
+// NewRateLimiter crée une nouvelle instance de RateLimiter avec les paramètres spécifiés.
 func NewRateLimiter(limit int, window time.Duration) *RateLimiter {
 	return &RateLimiter{
-		limit:  limit,
-		window: window,
+		limit:  limit,  // le nombre maximum de requêtes autorisées dans la fenêtre de temps
+		window: window, // la durée de la fenêtre de temps pour la limitation
 	}
 }
 
-// Vérifier si une requete est autorisée
+// Allow vérifie si une requête est autorisée en fonction de la clé (IP ou ID utilisateur) et de la limite définie.
 
 func (limiter *RateLimiter) Allow(
-	ctx context.Context, // Context de la requete
-	key string, // Clé qui identifie le client (ip ou id)
+	ctx context.Context, // le contexte de la requête HTTP
+	key string, // la clé unique pour identifier l'utilisateur ou l'IP (par exemple, "user:123" ou "ip:192.168.1.1")
 ) (bool, error) {
 
-	// permet d'incrémenter le compteur et de definir son expiration
+	// Script Lua pour incrémenter la clé dans Redis et définir une expiration si c'est la première requête
 
 	const scrypt = `
 local current = redis.call("INCR", KEYS[1])
 if current == 1 then 
-				redis.call("PEXPIRE",
+				redis.call("PEXPIRE", 
 				 KEYS[1], ARGV[1])
 				end 
 				return current
 `
 
-	// KEYS = clé à incrémenter et ARVG = durée avant expiration
+	// Construction de la clé Redis pour la limitation de débit
 
-	rediskey := "rate_limit:" + key // la clé redis devient rate_limit: ip : + key
+	rediskey := "rate_limit:" + key // On préfixe la clé pour éviter les collisions avec d'autres clés dans Redis
 
-	windowMilliseconds := limiter.window.Milliseconds() // On convertis la durée de la fenêtre en miliseconde
+	windowMilliseconds := limiter.window.Milliseconds() // On convertit la durée de la fenêtre en millisecondes pour Redis
 
-	count, err := config.RedisClient.Eval(
-		ctx,
-		scrypt,
-		[]string{rediskey},
-		windowMilliseconds,
-	).Int64()
+	count, err := config.RedisClient.Eval( // On exécute le script Lua dans Redis pour incrémenter la clé et obtenir le nombre actuel de requêtes
+		ctx,                // le contexte de la requête HTTP
+		scrypt,             // le script Lua à exécuter
+		[]string{rediskey}, // la clé Redis à utiliser pour la limitation de débit
+		windowMilliseconds, // la durée de la fenêtre en millisecondes pour Redis
+	).Int64() // On récupère le résultat du script Lua en tant qu'entier
 
-	// Vérifier si redis a rencontré une erreur
+	// Vérifier si Redis a rencontré une erreur lors de l'exécution du script Lua
 
 	if err != nil {
 		return false, fmt.Errorf(
@@ -63,12 +63,15 @@ if current == 1 then
 			err,
 		)
 	}
+
 	// Vérifier si la limite est dépassée
+
 	if count > int64(limiter.limit) {
-		return false, nil
+		return false, nil // La requête n'est pas autorisée car la limite est dépassée
 	}
 
-	// Autoriser la requête
+	// Autoriser la requête car elle est dans les limites définies
+
 	return true, nil
 }
 
@@ -86,21 +89,24 @@ func RateLimit(
 			request *http.Request,
 		) {
 
-			ctx := request.Context()
+			// Code exécuté avant le handler
+			ctx := request.Context() // Récupération du contexte de la requête HTTP
 
-			// 1. Limitation par utilisateur authentifié.
+			// 1. Limitation par ID utilisateur.
 
+			// Récupération de l'identifiant de l'utilisateur depuis le contexte
 			userID, ok := ctx.Value(userIDKey).(int)
 
+			// Vérification si l'identifiant de l'utilisateur est présent et si le limiteur d'utilisateur est défini
 			if ok && userLimiter != nil {
 
-				// On construit une clé unique pour cet ID
+				// Construction de la clé Redis associée à l'utilisateur
 				userKey := fmt.Sprintf("user:%d", userID)
 
-				// On vérifie si la limite n'est pas dépassée pour continuer les requêtes
+				// Vérification si la limite n'est pas dépassée pour l'utilisateur
 
-				allowed, err := userLimiter.Allow(ctx, userKey)
-				// vérifie une erreur interne du serveur
+				allowed, err := userLimiter.Allow(ctx, userKey) // On vérifie si l'utilisateur est autorisé à faire la requête en utilisant la clé Redis associée à l'utilisateur
+				// Vérifie une éventuelle erreur interne
 
 				if err != nil {
 					http.Error(
@@ -111,7 +117,7 @@ func RateLimit(
 					return
 				}
 
-				// Refuser la requête si limite dépassée
+				// Si l'utilisateur a dépassé sa limite, on refuse la requête
 
 				if !allowed {
 					apierrors.WriteHTTP(
@@ -122,8 +128,7 @@ func RateLimit(
 					)
 					return
 				}
-
-				// Passer la requête au handler suivant
+				// Si l'utilisateur est autorisé, on transmet la requête au handler suivant
 
 				next.ServeHTTP(response, request)
 				return
@@ -136,7 +141,10 @@ func RateLimit(
 				return
 			}
 
+			// Récupération de l'adresse IP du client à partir de l'adresse distante de la requête HTTP
+
 			ip, _, err := net.SplitHostPort(request.RemoteAddr)
+			// On utilise SplitHostPort pour séparer l'adresse IP et le port de l'adresse distante de la requête HTTP
 
 			if err != nil {
 				apierrors.WriteHTTP(
@@ -147,10 +155,10 @@ func RateLimit(
 				)
 				return
 			}
-			// On constuit la clé redis associée à cette adresse ip
+			// Construction de la clé Redis associée à l'adresse IP
 			ipKey := "ip:" + ip
 
-			// On vérifie si la limitee n'est pas depassée
+			// Vérification si la limite n'est pas dépassée pour l'adresse IP
 			allowed, err := ipLimiter.Allow(ctx, ipKey)
 			// Vérifie une éventuelle erreur interne
 			if err != nil {
@@ -162,7 +170,7 @@ func RateLimit(
 				return
 			}
 
-			// Si l'ip a depassé sa limite on refuse la requete
+			// Si l'adresse IP a dépassé sa limite, on refuse la requête
 
 			if !allowed {
 				apierrors.WriteHTTP(
@@ -174,7 +182,7 @@ func RateLimit(
 				return
 			}
 
-			// On transmet la requête au handler suivant
+			// Si l'adresse IP est autorisée, on transmet la requête au handler suivant
 			next.ServeHTTP(response, request)
 		})
 	}

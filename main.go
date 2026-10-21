@@ -7,6 +7,7 @@ import (
 	"pharmacie-api/config"
 	"pharmacie-api/database"
 	_ "pharmacie-api/docs"
+	"pharmacie-api/logging"
 	"pharmacie-api/middleware"
 	"pharmacie-api/routes"
 	"time"
@@ -19,6 +20,15 @@ import (
 // @BasePath /
 
 func main() {
+
+	// Initialisation de log pour afficher les messages de log avec la date et l'heure
+
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// Initialisation du logger pour écrire les logs dans un fichier
+
+	logFile := "logs/app.log"
+	logging.InitLogger(logFile)
 
 	// Initialisation de la base avant d'accepter les requêtes.
 
