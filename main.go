@@ -38,28 +38,32 @@ func startApplication() error {
 	if err != nil {
 		return err
 	}
+	// Assurez-vous que le fichier de log est fermé à la fin de l'exécution.
 	defer func() {
-		log.SetOutput(os.Stdout)
-		if err := logFile.Close(); err != nil {
+		log.SetOutput(os.Stdout)                // Réinitialiser la sortie des logs vers le terminal
+		if err := logFile.Close(); err != nil { // Fermer le fichier de log
 			log.Printf("Erreur à la fermeture du fichier de log: %v", err)
 		}
-	}()
+	}() // Fermer le fichier de log à la fin de l'exécution
 
-	// 3. Connecter les services nécessaires à l'API.
+	// 3. Initialiser la connexion à la base de données et à Redis.
 	if err := database.ConnexionDB(cfg); err != nil {
 		return err
 	}
+	// Assurez-vous que la connexion à la base de données est fermée à la fin de l'exécution.
 	defer database.Close()
 	log.Print("Connexion PostgreSQL établie")
 
+	// Initialiser Redis
 	if err := config.InitRedis(cfg.RedisAddr); err != nil {
 		return err
 	}
+	// Assurez-vous que la connexion à Redis est fermée à la fin de l'exécution.
 	defer func() {
 		if err := config.CloseRedis(); err != nil {
 			log.Printf("Erreur à la fermeture de Redis: %v", err)
 		}
-	}()
+	}() // Fermer Redis à la fin de l'exécution
 	log.Printf("Connexion Redis établie: adresse=%s", cfg.RedisAddr)
 
 	// 4. Préparer les routes et lancer le serveur HTTP.
@@ -67,5 +71,6 @@ func startApplication() error {
 	userLimiter := middleware.NewRateLimiter(10, time.Minute)
 	handler := routes.GestionRoutes(ipLimiter, userLimiter)
 
+	// 5. Démarrer le serveur HTTP.
 	return startHTTPServer(cfg.ServerPort, handler)
 }

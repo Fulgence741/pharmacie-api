@@ -25,6 +25,7 @@ func AjouterGarde(reponse http.ResponseWriter, requete *http.Request) {
 		return
 	}
 
+	// Créer un objet Garde à partir des données reçues
 	garde := models.Garde{
 		Nom_Garde:  donnees.NomGarde,
 		DateGarde:  donnees.DateGarde,
@@ -71,6 +72,7 @@ func AfficherGarde(reponse http.ResponseWriter, requete *http.Request) {
 		return
 	}
 
+	// Obtenir la garde à partir du service
 	garde, erreur := services.ObtenirGardeService(requete.Context(), identifiant)
 	if erreur != nil {
 		apierrors.WriteHTTP(reponse, erreur)
@@ -94,11 +96,13 @@ func ModifierGarde(reponse http.ResponseWriter, requete *http.Request) {
 		return
 	}
 
+	// Récupérer les données de la requête JSON et les valider
 	var donnees dto.GardeRequest
 	if erreur := decodeJSON(requete, &donnees); erreur != nil {
 		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
+	// Créer un objet Garde à partir des données reçues
 	garde := models.Garde{
 		Nom_Garde:  donnees.NomGarde,
 		DateGarde:  donnees.DateGarde,
@@ -126,6 +130,7 @@ func SupprimerGarde(reponse http.ResponseWriter, requete *http.Request) {
 		apierrors.WriteHTTP(reponse, erreur)
 		return
 	}
+	// Appeler le service pour supprimer la garde
 	if erreur := services.SupprimerGardeService(requete.Context(), identifiant); erreur != nil {
 		apierrors.WriteHTTP(reponse, erreur)
 		return

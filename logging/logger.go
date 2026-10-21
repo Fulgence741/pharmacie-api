@@ -8,9 +8,9 @@ import (
 )
 
 // InitLogger écrit les logs dans le fichier configuré et sur la sortie standard (stdout).
-//
+
 //	Elle crée le répertoire du fichier de log si nécessaire et configure le logger pour inclure
-//
+
 // les informations de date, d'heure et de fichier source dans les messages de log.
 func InitLogger(logFile string) (*os.File, error) {
 	// Création du répertoire du fichier de log si nécessaire

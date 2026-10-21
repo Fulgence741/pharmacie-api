@@ -145,6 +145,9 @@ var SwaggerInfo = &swag.Spec{
 	RightDelim:       "}}",
 }
 
+// init enregistre les informations de documentation Swagger auprès du package swag.
+//
+//	Il est appelé automatiquement lors de l'initialisation du package.
 func init() {
 	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
 }

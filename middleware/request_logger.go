@@ -60,11 +60,11 @@ func Logger(next http.Handler) http.Handler {
 
 		// Trace la requête HTTP avec son statut et sa durée de traitement
 		log.Printf(
-			"Requête HTTP méthode=%s chemin=%s statut=%d durée=%s", // Log format: HTTP request method, path, status code, and duration
-			request.Method,   // Log the HTTP request method (GET, POST, etc.)
-			request.URL.Path, // Log the HTTP request path (URL)
-			recorder.status,  // Log the HTTP response status code (200, 404, etc.)
-			duration,         // Log the duration of the HTTP request processing
+			"Requête HTTP méthode=%s chemin=%s statut=%d durée=%s", // Format de la trace de la requête HTTP
+			request.Method,   // request.Method est la méthode HTTP de la requête
+			request.URL.Path, // request.URL.Path est le chemin de la requête HTTP
+			recorder.status,  // recorder.status est le code de statut HTTP de la réponse
+			duration,         // duration est la durée de traitement de la requête HTTP
 		)
 	})
 }

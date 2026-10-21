@@ -42,6 +42,7 @@ func ListerGardesDB(
 						    heure_fin FROM gardes
 							
 		`
+	// Préparer les arguments pour la requête SQL en fonction des filtres fournis
 	var args []interface{}
 	paramIndex := 1
 	if filter.Nom_garde != "" {
@@ -49,6 +50,7 @@ func ListerGardesDB(
 		args = append(args, "%"+filter.Nom_garde+"%")
 		paramIndex++
 	}
+	// Ajouter la clause LIMIT et OFFSET à la requête SQL pour la pagination
 	requete += fmt.Sprintf(
 		"LIMIT $%d OFFSET $%d",
 		paramIndex,
@@ -63,6 +65,7 @@ func ListerGardesDB(
 	if err != nil {
 		return nil, err
 	}
+	// s'assurer que les lignes sont fermées après l'utilisation
 
 	defer rows.Close()
 	var listeGardes []models.Garde
@@ -78,11 +81,13 @@ func ListerGardesDB(
 		if err != nil {
 			return nil, err
 		}
+		// Ajouter la garde parcourue à la liste des gardes
 		listeGardes = append(listeGardes, parcourirGarde)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
+	// Retourner la liste des gardes et nil pour l'erreur si tout s'est bien passé
 	return listeGardes, nil
 
 }
@@ -98,6 +103,8 @@ func AfficherGardeDB(
 						   heure_debut,
 						    heure_fin FROM gardes WHERE id_garde = $1
 		`
+
+	// Exécuter la requête SQL pour obtenir la garde correspondant à l'identifiant fourni
 	err := database.DB.QueryRow(
 		ctx,
 		requete, id_garde).Scan(
@@ -120,6 +127,7 @@ func ModifierGardeDB(ctx context.Context, id_garde int, putGarde models.Garde) e
 					WHERE id_garde = $5
 
 			`
+	// Exécuter la requête SQL pour mettre à jour la garde correspondant à l'identifiant fourni
 	_, err := database.DB.Exec(
 		ctx,
 		requete,
@@ -136,6 +144,8 @@ func SupprimerGardeDB(ctx context.Context, id_garde int) error {
 	requete := `
 						DELETE FROM gardes WHERE id_garde= $1 
 	`
+
+	// Exécuter la requête SQL pour supprimer la garde correspondant à l'identifiant fourni
 	_, err := database.DB.Exec(
 		ctx,
 		requete, id_garde)

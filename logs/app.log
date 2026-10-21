@@ -9,3 +9,13 @@ package logs
 2026/10/21 13:43:20 main.go:56: Connexion PostgreSQL établie
 2026/10/21 13:43:20 main.go:66: Connexion Redis établie: adresse=127.0.0.1:6379
 2026/10/21 13:43:20 main.go:84: Serveur HTTP démarré: adresse=:8080
+2026/10/21 14:40:17 main.go:53: Connexion PostgreSQL établie
+2026/10/21 14:40:17 main.go:63: Connexion Redis établie: adresse=127.0.0.1:6379
+2026/10/21 14:40:17 server.go:30: Serveur HTTP démarré: adresse=:8080
+2026/10/21 16:29:55 main.go:53: Connexion PostgreSQL établie
+2026/10/21 16:29:55 main.go:63: Connexion Redis établie: adresse=127.0.0.1:6379
+2026/10/21 16:29:55 server.go:30: Serveur HTTP démarré: adresse=:8080
+2026/10/21 18:12:16 main.go:55: Connexion PostgreSQL établie
+2026/10/21 18:12:16 main.go:67: Connexion Redis établie: adresse=127.0.0.1:6379
+2026/10/21 18:12:16 server.go:34: Serveur HTTP démarré: adresse=:8080
+2026/10/21 18:12:56 request_logger.go:62: Requête HTTP méthode=POST chemin=/login statut=200 durée=475.616688ms
