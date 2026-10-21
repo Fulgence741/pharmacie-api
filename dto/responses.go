@@ -2,7 +2,7 @@ package dto
 
 import "time"
 
-// UserResponse expose les informations publiques d'un utilisateur, sans son mot de passe.
+// UserResponse expose les informations publiques d'un utilisateur, sans son mot de passe
 type UserResponse struct {
 	ID       int    `json:"id"`
 	Nom      string `json:"nom"`
@@ -11,7 +11,7 @@ type UserResponse struct {
 	Role     string `json:"role"`
 }
 
-// PharmacieResponse décrit les champs de pharmacie renvoyés par l'API.
+// PharmacieResponse décrit les champs de pharmacie renvoyés par l'API
 type PharmacieResponse struct {
 	IDPharmacie int    `json:"id_pharmacie"`
 	Nom         string `json:"nom"`
@@ -22,7 +22,7 @@ type PharmacieResponse struct {
 	Status      string `json:"status"`
 }
 
-// GardeResponse décrit les champs de garde renvoyés par l'API.
+// GardeResponse décrit les champs de garde renvoyés par l'API
 type GardeResponse struct {
 	IDGarde    int    `json:"id_garde"`
 	NomGarde   string `json:"nom_garde"`
@@ -31,7 +31,7 @@ type GardeResponse struct {
 	HeureFin   string `json:"heure_fin"`
 }
 
-// PharmacieGardeResponse représente une pharmacie associée à sa période de garde.
+// PharmacieGardeResponse représente une pharmacie associée à sa période de garde
 type PharmacieGardeResponse struct {
 	Nom        string    `json:"nom"`
 	Adresse    string    `json:"adresse"`
