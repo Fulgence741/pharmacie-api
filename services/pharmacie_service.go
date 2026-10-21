@@ -42,7 +42,7 @@ func ListerPharmacieServices(ctx context.Context,
 	filter models.PharmacieFilter) ([]models.Pharmacie, error) {
 
 	cachekey := fmt.Sprintf(
-		"cache:pharmacie:nom:%q:limit:%d:ofsset:%d",
+		"cache:pharmacie:nom:%q:limit:%d:offset:%d",
 		strings.ToLower(strings.TrimSpace(filter.Nom)),
 		pagination.Limit,
 		pagination.Offset,
@@ -53,14 +53,14 @@ func ListerPharmacieServices(ctx context.Context,
 	found, err := cache.GetJSON(ctx, cachekey, &pharmacie)
 
 	if err == nil && found {
-		log.Println("CACHE HIT: données récupérées depuis Redis")
+		log.Print("Cache HIT ressource=pharmacie backend=Redis")
 		return pharmacie, nil
 	}
 	if err != nil {
-		log.Printf("Erreeur de lecture du cache Redis: %v", err)
+		log.Printf("Cache READ_ERROR ressource=pharmacie backend=Redis erreur=%v", err)
 	}
 
-	log.Println("CACHE MISS : récupération des données depuis PostgreSQL")
+	log.Print("Cache MISS ressource=pharmacie backend=PostgreSQL")
 
 	pharmacie, err = repositories.ListerPharmacieDB(
 		ctx,
@@ -80,7 +80,7 @@ func ListerPharmacieServices(ctx context.Context,
 	)
 
 	if err != nil {
-		log.Printf("Erreur d'enregistrement du cache Redis: %v", err)
+		log.Printf("Cache WRITE_ERROR ressource=pharmacie backend=Redis erreur=%v", err)
 	}
 
 	return pharmacie, nil

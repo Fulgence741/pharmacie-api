@@ -1,12 +1,16 @@
 # Pharmacie API
 
-API HTTP en Go pour gérer les pharmacies, les gardes, les utilisateurs et les liens entre pharmacies et gardes. Les routes sont déclarées dans `routes`, et la documentation est disponible sur `/swagger/`.
+API HTTP en Go pour gérer les pharmacies, les gardes, les pharmacies de garde et les utilisateurs. La documentation Swagger est servie sur `/swagger/`.
 
-## Démarrer le projet
+## Prérequis
 
-Technologies : Go 1.26 ou plus récent et une base PostgreSQL accessible.
+- Go 1.26.5 ou version ultérieure.
+- PostgreSQL accessible depuis l'application.
+- Redis accessible depuis l'application.
 
-Créer un fichier `.env` à la racine avec les paramètres nécessaires :
+## Configuration
+
+Copiez `.env.example` vers `.env`, puis renseignez les paramètres PostgreSQL et le secret JWT :
 
 ```env
 DB_HOST=localhost
@@ -15,50 +19,70 @@ DB_USER=votre_utilisateur
 DB_PASSWORD=votre_mot_de_passe
 DB_NAME=votre_base
 DB_SSLMODE=disable
-JWT_SECRET=une_cle_secrete
+JWT_SECRET=remplacez_par_un_secret_long_et_aleatoire
+SERVER_PORT=8080
+REDIS_ADDR=127.0.0.1:6379
+LOG_FILE=logs/app.log
 ```
 
-Puis lancer l'API :
+`DB_HOST`, `DB_USER`, `DB_NAME` et `JWT_SECRET` sont obligatoires. Les autres valeurs ont des valeurs par défaut. En dehors de Docker, l'application utilise Redis sur `127.0.0.1:6379`.
+
+## Démarrage
+
+En local, après avoir démarré PostgreSQL et Redis :
 
 ```bash
 go run .
 ```
 
-Le serveur écoute actuellement sur le port `8080`.
+Le serveur écoute sur le port `8080` par défaut. `SERVER_PORT` permet de le modifier.
+
+Avec Docker Compose, Redis est lancé automatiquement. PostgreSQL reste un service externe ; sous Docker Desktop, utilisez généralement `DB_HOST=host.docker.internal` pour joindre PostgreSQL installé sur l'hôte :
+
+```bash
+docker compose up --build
+```
+
 ## Routes principales
 
-Toutes les routes métier utilisent la méthode `POST`.
+Les routes métier utilisent actuellement `POST`.
 
- Ressource et Routes 
+| Ressource | Routes |
+| --- | --- |
+| Pharmacies | `/pharmacie`, `/pharmacie/list`, `/pharmacie/{id_pharmacie}/get`, `/pharmacie/{id_pharmacie}/put`, `/pharmacie/{id_pharmacie}/delete` |
+| Gardes | `/garde`, `/garde/list`, `/garde/{id_garde}/get`, `/garde/{id_garde}/put`, `/garde/{id_garde}/delete` |
+| Pharmacies de garde | `/pharmacie-garde`, `/pharmacie-garde/list`, `/pharmacie-garde/{id}/delete` |
+| Utilisateurs | `/user`, `/user/list`, `/user/{id}/get`, `/user/{id}/delete`, `/user/{id}/role/patch` |
+| Authentification | `/login` |
 
- Pharmacies  `/pharmacie`, `/pharmacie/list`, `/pharmacie/{id_pharmacie}/get`, `/pharmacie/{id_pharmacie}/put`, `/pharmacie/{id_pharmacie}/delete` 
- Gardes  `/garde`, `/garde/list`, `/garde/{id_garde}/get`, `/garde/{id_garde}/put`, `/garde/{id_garde}/delete` |
- Pharmacies de garde  `/pharmacie-garde`, `/pharmacie-garde/list`, `/pharmacie-garde/{id}/delete` 
- Utilisateurs  `/user`, `/user/list`, `/user/{id}/get`, `/user/{id}/delete`, `/user/{id}/role/patch` 
- Authentification  `/login` 
-
-Les routes protégées attendent un jeton JWT dans l'en-tête `Authorization`, avec le schéma `Bearer` suivi du jeton. Les listes acceptent les paramètres de pagination `page` et `limit`, ainsi que leurs filtres de recherche.
+Les routes protégées attendent un jeton JWT dans l'en-tête `Authorization`, au format `Bearer <jeton>`. Les routes de liste prennent en charge la pagination (`page`, `limit`) et les filtres définis par les handlers.
 
 ## Organisation du code
 
-- `handlers/` reçoit les requêtes HTTP, utilise les DTO et transmet le contexte de la requête.
-- `dto/` définit séparément les formats JSON reçus (`requests.go`) et renvoyés (`responses.go`).
-- `services/` applique les validations et les règles métier.
-- `repositories/` exécute les requêtes PostgreSQL.
-- `models/` décrit les données manipulées par les services et les repositories.
-- `middleware/` regroupe l'authentification, les rôles, les limites de requêtes et les logs.
-- `errors/` centralise les erreurs métier/HTTP et leur format de réponse JSON.
-- `database/` charge la configuration, ouvre la connexion et gère les migrations.
+```text
+.
+├── auth/          # JWT
+├── cache/         # Cache Redis
+├── config/        # Configuration et client Redis
+├── database/      # Connexion PostgreSQL
+├── docs/          # Documentation Swagger
+├── dto/           # Formats JSON d'entrée et de sortie
+├── errors/        # Erreurs HTTP et métier
+├── handlers/      # Adaptation HTTP
+├── logging/       # Initialisation des logs
+├── middleware/    # Authentification, rôles, limites et logs HTTP
+├── models/        # Modèles métier
+├── repositories/  # Accès aux données PostgreSQL
+├── routes/        # Déclaration des endpoints
+├── services/      # Validation et règles métier
+└── utils/         # Utilitaires partagés, dont la pagination
+```
 
-## Contexte et erreurs
+Les handlers transmettent le contexte HTTP aux services puis aux repositories afin que l'annulation des requêtes soit respectée. Les erreurs de connexion PostgreSQL ou Redis empêchent le serveur de démarrer. À l'arrêt, le serveur se ferme proprement et libère ses connexions.
 
-Pour une requête entrante, les handlers transmettent `request.Context()` aux services, puis aux repositories. Le contexte porte  l'annulation du client et les échéances : les opérations SQL doivent réutiliser ce contexte et ne pas le remplacer par `context.Background()`. Un contexte avec délai indépendant est réservé aux opérations d'initialisation, comme la connexion à PostgreSQL.
+Les logs sont envoyés à la sortie standard et au fichier défini par `LOG_FILE` (par défaut `logs/app.log`). Les erreurs internes sont consignées côté serveur sans exposer les détails techniques au client.
 
-Les erreurs HTTP sont écrites par le point commun dans `errors/` au format `{"error":"..."}`. Les erreurs de validation, d'authentification, d'autorisation et de ressource absente conservent leur statut HTTP ; les erreurs internes sont consignées dans les logs et ne révèlent pas les détails de la base de données au client.
-
-Les DTO d'entrée empêchent de lier directement le JSON reçu aux modèles de base de données. Les DTO de sortie permettent de contrôler les champs exposés ; par exemple, la réponse utilisateur ne contient pas le mot de passe.
-
-## Vérification
+## Tests
 
 ```bash
 go test ./...

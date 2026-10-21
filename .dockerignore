@@ -1,6 +1,6 @@
-.env 
+.env
 .git
-.gitignore
-Dockerfile
-.dockerignore
+.vscode/
 README.md
+logs/
+*.swp

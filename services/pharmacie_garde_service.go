@@ -44,17 +44,17 @@ func ListerPharmacieGardeService(
 
 	// 4. Si les données existent, les retourner directement.
 	if err == nil && found {
-		log.Println("CACHE HIT : données récupérées depuis Redis")
+		log.Print("Cache HIT ressource=pharmacie-garde backend=Redis")
 		return pharmacieGarde, nil
 	}
 
 	// 5. Signaler une éventuelle erreur Redis.
 	if err != nil {
-		log.Printf("Erreur de lecture du cache Redis : %v", err)
+		log.Printf("Cache READ_ERROR ressource=pharmacie-garde backend=Redis erreur=%v", err)
 	}
 
 	// 6. Si le cache est absent, récupérer les données dans PostgreSQL.
-	log.Println("CACHE MISS : récupération des données dans PostgreSQL")
+	log.Print("Cache MISS ressource=pharmacie-garde backend=PostgreSQL")
 
 	pharmacieGarde, err = repositories.ListerPharmacieGardeDB(
 		ctx,
@@ -76,7 +76,7 @@ func ListerPharmacieGardeService(
 
 	// 8. Signaler une éventuelle erreur sans bloquer la réponse.
 	if err != nil {
-		log.Printf("Erreur d'enregistrement du cache Redis : %v", err)
+		log.Printf("Cache WRITE_ERROR ressource=pharmacie-garde backend=Redis erreur=%v", err)
 	}
 
 	// 9. Retourner les résultats.

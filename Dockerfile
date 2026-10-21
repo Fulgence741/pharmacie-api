@@ -1,31 +1,24 @@
-# Etape 1 : utiliser une image Go pour compiler l'application
-FROM golang:1.26-alpine AS builder 
-
-# Dossier de travail dans le conteneur 
-WORKDIR /app 
-
-# Copier les fichiers de dépedances 
-COPY go.mod go.sum ./
-
-# Télécharger les dépendances 
-RUN go mod download 
-
-# Copier tout le projet 
-COPY . .
-
-# Compiler l'API 
-RUN go build -o pharmacie-api .
-
-# Etape 2 : Créer une image légère pour exécuter l'API 
-FROM alpine:latest 
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
-# Copier l'exécutable depuis l'étape précédente 
-COPY --from=builder /app/pharmacie-api .
+COPY go.mod go.sum ./
+RUN go mod download
 
-# L'API utilise le port 8080 
-EXPOSE 8080 
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/pharmacie-api .
 
-# Demarre l'API
-CMD ["./pharmacie-api"]
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates \
+    && addgroup -S app \
+    && adduser -S -G app app
+
+WORKDIR /app
+COPY --from=builder /out/pharmacie-api .
+RUN mkdir -p logs && chown -R app:app /app
+
+USER app
+
+EXPOSE 8080
+ENTRYPOINT ["./pharmacie-api"]

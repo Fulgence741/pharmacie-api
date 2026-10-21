@@ -154,20 +154,3 @@ func AfficherUserDB(ctx context.Context, id int) (models.User, error) {
 
 	return afficherU, err
 }
-
-func ObtenirPasswordDB(ctx context.Context, userID int) (string, error) {
-	requete := `
-					SELECT password 
-					FROM users
-					WHERE id = $1
-	`
-	var passwordHash string
-
-	err := database.DB.QueryRow(ctx,
-		requete, userID).Scan(&passwordHash)
-	if err != nil {
-		return "", err
-	}
-
-	return passwordHash, nil
-}

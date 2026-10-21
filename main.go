@@ -1,16 +1,23 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
+
 	"pharmacie-api/config"
 	"pharmacie-api/database"
 	_ "pharmacie-api/docs"
 	"pharmacie-api/logging"
 	"pharmacie-api/middleware"
 	"pharmacie-api/routes"
-	"time"
 )
 
 // @title Pharmacie API
@@ -20,41 +27,77 @@ import (
 // @BasePath /
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatalf("Erreur au démarrage ou à l'arrêt de l'API: %v", err)
+	}
+}
 
-	// Initialisation de log pour afficher les messages de log avec la date et l'heure
-
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
-	// Initialisation du logger pour écrire les logs dans un fichier
-
-	logFile := "logs/app.log"
-	logging.InitLogger(logFile)
-
-	// Initialisation de la base avant d'accepter les requêtes.
-
-	cfg := config.LoadConfig()
-	err := database.ConnexionDB(cfg)
-
+func run() (runErr error) {
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal("Erreur de la connexion à postgreSQL:", err)
-		return
-	} else {
-		log.Println("Connexion reussie à postgreSQL")
+		return err
 	}
 
-	// Initiatlisation de Redis
+	logFile, err := logging.InitLogger(cfg.LogFile)
+	if err != nil {
+		return fmt.Errorf("initialisation des logs: %w", err)
+	}
+	defer func() {
+		log.SetOutput(os.Stdout)
+		if err := logFile.Close(); err != nil {
+			runErr = errors.Join(runErr, fmt.Errorf("fermeture du fichier de log: %w", err))
+		}
+	}()
 
-	config.InitRedis()
+	if err := database.ConnexionDB(cfg); err != nil {
+		return err
+	}
+	defer database.Close()
+	log.Print("Connexion PostgreSQL établie")
 
-	// Les limites sont partagées par toutes les routes de l'application.
+	if err := config.InitRedis(cfg.RedisAddr); err != nil {
+		return err
+	}
+	defer func() {
+		if err := config.CloseRedis(); err != nil {
+			runErr = errors.Join(runErr, err)
+		}
+	}()
+	log.Printf("Connexion Redis établie: adresse=%s", cfg.RedisAddr)
+
 	ipLimiter := middleware.NewRateLimiter(5, time.Minute)
 	userLimiter := middleware.NewRateLimiter(10, time.Minute)
+	handler := routes.GestionRoutes(ipLimiter, userLimiter)
 
-	// Toutes les routes sont déclarées dans le routeur central.
-	routes.GestionRoutes(ipLimiter, userLimiter)
+	port := strings.TrimPrefix(cfg.ServerPort, ":")
+	server := &http.Server{
+		Addr:              ":" + port,
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
 
-	//Demarrer le serveur HTTP
-	fmt.Println("Serveur demarré sur le port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Printf("Serveur HTTP démarré: adresse=%s", server.Addr)
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErrors <- fmt.Errorf("serveur HTTP: %w", err)
+		} else {
+			serverErrors <- nil
+		}
+	}()
+
+	select {
+	case err := <-serverErrors:
+		return err
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			return fmt.Errorf("arrêt du serveur HTTP: %w", err)
+		}
+		return <-serverErrors
+	}
 }

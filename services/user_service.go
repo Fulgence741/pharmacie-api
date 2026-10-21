@@ -67,16 +67,16 @@ func ListerUserService(ctx context.Context,
 	var user []models.User
 
 	found, err := cache.GetJSON(ctx, cacheKey, &user)
-	if err != nil && found {
-		log.Println("CACHE HIT : données récupérées depuis Redis")
+	if err == nil && found {
+		log.Print("Cache HIT ressource=utilisateur backend=Redis")
 		return user, nil
 	}
 
 	if err != nil {
-		log.Printf("Erreur de lecture du cache Redis")
+		log.Printf("Cache READ_ERROR ressource=utilisateur backend=Redis erreur=%v", err)
 	}
 
-	log.Println("CACHE MISS : récupération des données dans postgreSQL")
+	log.Print("Cache MISS ressource=utilisateur backend=PostgreSQL")
 	user, err = repositories.ListerUserDB(ctx, pagination.Limit,
 		pagination.Offset,
 		filter)
@@ -151,36 +151,3 @@ func AfficherUserServices(ctx context.Context, id int) (models.User, error) {
 	return user, nil
 
 }
-
-/*
-// Fonction de modification de mot de passe à implémenter plus tard   !!
-======================================================================
-func ChangerPasswordServices(
-	userID int,
-	changement models.ChangerPassword,
-) error {
-	passwordHash, err := repositories.ObtenirPasswordDB(userID)
-	if err != nil {
-		return err
-	}
-	err = bcrypt.CompareHashAndPassword(
-		[]byte(passwordHash),
-		[]byte(changement.AncienPassword),
-	)
-	if err != nil {
-		return err
-	}
-
-	if len(changement.NouveauPassword) < 8 {
-		return errors.New("Le nouveau mot de passe doit contenir au moins 8 caractères")
-	}
-
-	nouveauPasswordHash, err := bcrypt.GenerateFromPassword(
-		[]byte(changement.NouveauPassword),
-		bcrypt.DefaultCost,
-	)
-	if err != nil {
-		return err
-	}
-	return nil
-} */

@@ -60,7 +60,7 @@ func WriteHTTP(response http.ResponseWriter, err error) {
 		statusCode = http.StatusNotFound
 		message = ErrNotFound.Error()
 	} else {
-		log.Printf("Erreur interne de l'API: %v", err)
+		log.Printf("Erreur interne API: erreur=%v", err)
 	}
 
 	response.Header().Set("Content-Type", "application/json")
@@ -68,6 +68,6 @@ func WriteHTTP(response http.ResponseWriter, err error) {
 	if encodeErr := json.NewEncoder(response).Encode(map[string]string{
 		"error": message,
 	}); encodeErr != nil {
-		log.Printf("Impossible d'écrire la réponse d'erreur: %v", encodeErr)
+		log.Printf("Échec écriture réponse JSON d'erreur: erreur=%v", encodeErr)
 	}
 }

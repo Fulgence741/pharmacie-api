@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"pharmacie-api/models"
+	"pharmacie-api/services"
+
 	"pharmacie-api/auth"
 	"pharmacie-api/dto"
 	apierrors "pharmacie-api/errors"
-	"pharmacie-api/models"
-	"pharmacie-api/services"
 	"pharmacie-api/utils"
 )
 

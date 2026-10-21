@@ -34,7 +34,7 @@ func ListerGardeService(ctx context.Context, pagination utils.Pagination,
 	filter models.GardeFilter) ([]models.Garde, error) {
 
 	// Gestion de cache
-	cacheKey := fmt.Sprint(
+	cacheKey := fmt.Sprintf(
 		"cache:garde:nom:%q:limit:%d:offset:%d",
 		strings.ToLower(strings.TrimSpace(filter.Nom_garde)),
 		pagination.Limit,
@@ -46,14 +46,14 @@ func ListerGardeService(ctx context.Context, pagination utils.Pagination,
 	found, err := cache.GetJSON(ctx, cacheKey, &garde)
 
 	if err == nil && found {
-		log.Println("CACHE HIT : données récupérées depuis Redis")
+		log.Print("Cache HIT ressource=garde backend=Redis")
 		return garde, nil
 	}
 
 	if err != nil {
-		log.Printf("Erreur de lecture du cache Redis : %v", err)
+		log.Printf("Cache READ_ERROR ressource=garde backend=Redis erreur=%v", err)
 	}
-	log.Println("CACHE MISS : recuperation des données depuis postgreSQL")
+	log.Print("Cache MISS ressource=garde backend=PostgreSQL")
 
 	// Appel du repository
 	garde, err = repositories.ListerGardesDB(ctx,

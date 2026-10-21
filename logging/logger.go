@@ -1,25 +1,24 @@
 package logging
 
 import (
-	"fmt"
+	"io"
 	"log"
 	"os"
+	"path/filepath"
 )
 
-// InitLogger initialise le logger pour écrire les logs dans un fichier.
-func InitLogger(logFile string) {
-	// Ouvre le fichier de log en mode append, crée-le s'il n'existe pas, et définit les permissions à 0644
-	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatalf("Erreur lors de l'ouverture du fichier de log: %v", err)
+// InitLogger écrit les logs dans le fichier configuré et sur la sortie standard.
+func InitLogger(logFile string) (*os.File, error) {
+	if err := os.MkdirAll(filepath.Dir(logFile), 0755); err != nil {
+		return nil, err
 	}
 
-	// Définit la sortie du logger vers le fichier ouvert
-	log.SetOutput(file)
+	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, err
+	}
 
-	// Définit le format du logger pour inclure la date, l'heure et le nom du fichier
+	log.SetOutput(io.MultiWriter(os.Stdout, file))
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
-	// Affiche un message indiquant que le logger a été initialisé avec succès
-	fmt.Printf("Logger initialisé. Les logs seront écrits dans %s\n", logFile)
+	return file, nil
 }

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestIvalidRequest(t *testing.T){
+func TestInvalidRequest(t *testing.T) {
 	err := InvalidRequest("Nom invalide")
 
 	httpErr, ok := err.(*HTTPError)
@@ -13,7 +13,7 @@ func TestIvalidRequest(t *testing.T){
 		t.Fatal("On attendait une HTTPError")
 	}
 
-	if httpErr.StatusCode != http.StatusBadRequest{
+	if httpErr.StatusCode != http.StatusBadRequest {
 		t.Errorf(
 			"Code HTTP incorrect: attendu %d, obtenu %d",
 			http.StatusBadRequest,

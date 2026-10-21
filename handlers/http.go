@@ -31,6 +31,6 @@ func writeJSON(reponse http.ResponseWriter, codeStatut int, contenu any) {
 	reponse.Header().Set("Content-Type", "application/json")
 	reponse.WriteHeader(codeStatut)
 	if erreur := json.NewEncoder(reponse).Encode(contenu); erreur != nil {
-		log.Printf("Impossible d'écrire la réponse JSON: %v", erreur)
+		log.Printf("Échec écriture réponse JSON: erreur=%v", erreur)
 	}
 }

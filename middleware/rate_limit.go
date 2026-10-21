@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
+
 	"pharmacie-api/config"
 	apierrors "pharmacie-api/errors"
-	"time"
 )
 
 // RateLimiter est une structure qui gère la limitation du nombre de requêtes par utilisateur ou par IP.
@@ -109,11 +110,7 @@ func RateLimit(
 				// Vérifie une éventuelle erreur interne
 
 				if err != nil {
-					http.Error(
-						response,
-						"Erreur interne du serveur",
-						http.StatusInternalServerError,
-					)
+					apierrors.WriteHTTP(response, err)
 					return
 				}
 
@@ -162,11 +159,7 @@ func RateLimit(
 			allowed, err := ipLimiter.Allow(ctx, ipKey)
 			// Vérifie une éventuelle erreur interne
 			if err != nil {
-				http.Error(
-					response,
-					"Erreur interne du serveur",
-					http.StatusInternalServerError,
-				)
+				apierrors.WriteHTTP(response, err)
 				return
 			}
 

@@ -3,6 +3,7 @@ package routes
 
 import (
 	"net/http"
+
 	"pharmacie-api/handlers"
 	"pharmacie-api/middleware"
 
@@ -13,11 +14,12 @@ import (
 func GestionRoutes(
 	ipLimiter *middleware.RateLimiter,
 	userLimiter *middleware.RateLimiter,
-) {
+) *http.ServeMux {
+	mux := http.NewServeMux()
 	/* Pharmacies : consultation publique, écriture réservée aux rôles autorisés.
 	============================================================================*/
 
-	http.Handle(
+	mux.Handle(
 		"POST /pharmacie",
 		middleware.Logger(
 			middleware.Auth(
@@ -27,7 +29,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /pharmacie/list",
 		middleware.Logger(
 			middleware.RateLimit(ipLimiter, nil)(
@@ -35,7 +37,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /pharmacie/{id_pharmacie}/get",
 		middleware.Logger(
 			middleware.RateLimit(ipLimiter, nil)(
@@ -43,7 +45,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /pharmacie/{id_pharmacie}/put",
 		middleware.Logger(
 			middleware.Auth(
@@ -55,7 +57,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /pharmacie/{id_pharmacie}/delete",
 		middleware.Logger(
 			middleware.Auth(
@@ -70,7 +72,7 @@ func GestionRoutes(
 
 	/* Gardes : toutes les opérations nécessitent une authentification.
 	=========================================================================*/
-	http.Handle(
+	mux.Handle(
 		"POST /garde",
 		middleware.Logger(
 			middleware.Auth(
@@ -82,7 +84,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /garde/list",
 		middleware.Logger(
 			middleware.Auth(
@@ -94,7 +96,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /garde/{id_garde}/get",
 		middleware.Logger(
 			middleware.Auth(
@@ -106,7 +108,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /garde/{id_garde}/put",
 		middleware.Logger(
 			middleware.Auth(
@@ -118,7 +120,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /garde/{id_garde}/delete",
 		middleware.Logger(
 			middleware.Auth(
@@ -133,7 +135,7 @@ func GestionRoutes(
 
 	/* Pharmacies de garde : création/suppression admin, consultation publique.
 	=====================================================================*/
-	http.Handle(
+	mux.Handle(
 		"POST /pharmacie-garde",
 		middleware.Logger(
 			middleware.Auth(
@@ -145,16 +147,16 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
-		"POST /pharmacie-garde/list",
+	mux.Handle(
+		"POST /pharmacie_garde/list",
 		middleware.Logger(
 			middleware.RateLimit(ipLimiter, nil)(
 				http.HandlerFunc(handlers.ListerPharmacieGarde),
 			),
 		),
 	)
-	http.Handle(
-		"POST /pharmacie-garde/{id}/delete",
+	mux.Handle(
+		"POST /pharmacie_garde/{id}/delete",
 		middleware.Logger(
 			middleware.Auth(
 				middleware.RateLimit(ipLimiter, userLimiter)(
@@ -168,7 +170,7 @@ func GestionRoutes(
 
 	/* Utilisateurs : inscription et connexion publiques, administration protégée.
 	==============================================================================*/
-	http.Handle(
+	mux.Handle(
 		"POST /user",
 		middleware.Logger(
 			middleware.RateLimit(ipLimiter, nil)(
@@ -176,7 +178,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /user/list",
 		middleware.Logger(
 			middleware.Auth(
@@ -188,7 +190,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /user/{id}/delete",
 		middleware.Logger(
 			middleware.Auth(
@@ -200,7 +202,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /user/{id}/role/patch",
 		middleware.Logger(
 			middleware.Auth(
@@ -212,7 +214,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /user/{id}/get",
 		middleware.Logger(
 			middleware.Auth(
@@ -224,7 +226,7 @@ func GestionRoutes(
 			),
 		),
 	)
-	http.Handle(
+	mux.Handle(
 		"POST /login",
 		middleware.Logger(
 			middleware.RateLimit(ipLimiter, nil)(
@@ -234,5 +236,6 @@ func GestionRoutes(
 	)
 
 	// Documentation  de l'API.
-	http.Handle("/swagger/", httpSwagger.WrapHandler)
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
+	return mux
 }

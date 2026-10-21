@@ -9,7 +9,7 @@ import (
 
 // NeExposePasMotDePasse vérifie que la réponse JSON
 // d'un utilisateur ne contient ni son mot de passe ni le hashing.
-func NeExposePasMotDePasse(t *testing.T) {
+func TestNeExposePasMotDePasse(t *testing.T) {
 	reponse := userResponse(models.User{
 		ID_USER:  7,
 		Nom:      "Alice",

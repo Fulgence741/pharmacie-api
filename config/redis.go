@@ -2,24 +2,40 @@ package config
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
 var RedisClient *redis.Client
 
-func InitRedis() {
-	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     "127.0.0.1:6379",
-		Password: "",
-		DB:       0,
+// InitRedis vérifie Redis avant de laisser l'application accepter des requêtes.
+func InitRedis(address string) error {
+	client := redis.NewClient(&redis.Options{
+		Addr: address,
 	})
 
-	ctx := context.Background()
-	if err := RedisClient.Ping(ctx).Err(); err != nil {
-		log.Fatalf("Impossible de se connecter à redis: %v", err)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := client.Ping(ctx).Err(); err != nil {
+		_ = client.Close()
+		return fmt.Errorf("connexion à Redis (%s): %w", address, err)
 	}
 
-	log.Println("Connexion reussie à REDIS")
+	RedisClient = client
+	return nil
+}
+
+// CloseRedis ferme le client Redis initialisé au démarrage.
+func CloseRedis() error {
+	if RedisClient == nil {
+		return nil
+	}
+	if err := RedisClient.Close(); err != nil {
+		return fmt.Errorf("fermeture de la connexion Redis: %w", err)
+	}
+	RedisClient = nil
+	return nil
 }
