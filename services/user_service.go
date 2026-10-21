@@ -57,7 +57,7 @@ func ListerUserService(ctx context.Context,
 
 	// Gestion de cache
 
-	cacheKey := fmt.Sprint(
+	cacheKey := fmt.Sprintf(
 		"cache:user:nom:%q:limit:%d:offset:%d",
 		strings.ToLower(strings.TrimSpace(filter.Nom)),
 		pagination.Limit,

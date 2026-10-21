@@ -80,7 +80,7 @@ func ListerPharmacieServices(ctx context.Context,
 	)
 
 	if err != nil {
-		log.Println("Erreur d'enregistrement du cache Redis: %v", err)
+		log.Printf("Erreur d'enregistrement du cache Redis: %v", err)
 	}
 
 	return pharmacie, nil
